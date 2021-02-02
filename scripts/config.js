@@ -34,7 +34,7 @@ const resolve = p => {
     return path.resolve(__dirname, '../', p)
   }
 }
-
+// 多种build平台的配置，遵循 Rollup 的构建规则
 const builds = {
   // Runtime only (CommonJS). Used by bundlers e.g. Webpack & Browserify
   'web-runtime-cjs-dev': {

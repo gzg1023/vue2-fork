@@ -42,3 +42,14 @@
 - server：支持服务端渲染文件夹
 - sfc：.vue单文件解析文件夹
 - shared: 共享代码
+
+### 构建后的版本
+
+打包后会产生很多类型的文件，默认的vue是Runtime +  UMD 版本的构建，也是vue-cli默认导出的版本。
+
+runtime版本是不包含Compiler的版本。其中带min的是压缩版本，适用于线上生产环境。
+
+| 模块类型| UMD 规范 | CommonJS 规范| ES Module 规范 |
+| --- | --- | --- | --- |
+| **全部** | vue.js | vue.common.js | vue.esm.js |
+| **Runtime版本** | vue.runtime.js | vue.runtime.common.js | vue.runtime.esm.js |
