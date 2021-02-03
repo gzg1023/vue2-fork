@@ -13,15 +13,20 @@ const idToTemplate = cached(id => {
   const el = query(id)
   return el && el.innerHTML
 })
-
+// 初始化函数
 const mount = Vue.prototype.$mount
+/**
+ * 
+ * @param {*} el DOM元素
+ * @param {*} hydrating 标志是否为ssr的flag true表示ssr应用
+ */
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
 ): Component {
+  // 如果存在el，就取到当前到DOM，可以是css选择器，也可以是DOM节点
   el = el && query(el)
-
-  /* istanbul ignore if */
+  // el不能是body或者html元素
   if (el === document.body || el === document.documentElement) {
     process.env.NODE_ENV !== 'production' && warn(
       `Do not mount Vue to <html> or <body> - mount to normal elements instead.`
@@ -30,7 +35,10 @@ Vue.prototype.$mount = function (
   }
 
   const options = this.$options
-  // resolve template/el and convert to render function
+  /**
+   *  解析模板 转为render
+   *  如果不存在render就是用template模版的内容
+   */
   if (!options.render) {
     let template = options.template
     if (template) {
@@ -79,6 +87,7 @@ Vue.prototype.$mount = function (
       }
     }
   }
+  // 渲染DOM
   return mount.call(this, el, hydrating)
 }
 

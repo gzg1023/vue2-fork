@@ -33,7 +33,7 @@
 
 ### 源码核心模块
 
-```jsx
+```javascript
  src/
 ```
 - compiler：编译源码相关文件夹
@@ -42,6 +42,22 @@
 - server：支持服务端渲染文件夹
 - sfc：.vue单文件解析文件夹
 - shared: 共享代码
+
+
+### 源码入口文件
+
+
+```javascript
+src/platforms/web/entry-runtime-with-compiler.js
+```
+
+运行项目生成map文件，进行debug
+  
+```javascript
+yarn debug
+```
+
+
 
 ### 构建后的版本
 
@@ -53,3 +69,8 @@ runtime版本是不包含Compiler的版本。其中带min的是压缩版本，�
 | --- | --- | --- | --- |
 | **全部** | vue.js | vue.common.js | vue.esm.js |
 | **Runtime版本** | vue.runtime.js | vue.runtime.common.js | vue.runtime.esm.js |
+
+### 面试题总结
+
+* 同时设置了render和template会这么解析？
+* el可以设置为html或者body元素吗，设置了会怎么样
