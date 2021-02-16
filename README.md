@@ -44,7 +44,17 @@
 - shared: 共享代码
 
 
-### 源码入口文件
+### 构建后的版本
+
+打包后会产生很多类型的文件，默认的vue是Runtime +  UMD 版本的构建，也是vue-cli默认导出的版本。
+
+runtime版本是不包含Compiler的版本。其中带min的是压缩版本，适用于线上生产环境。
+
+| 模块类型| UMD 规范 | CommonJS 规范| ES Module 规范 |
+| --- | --- | --- | --- |
+| **全部** | vue.js | vue.common.js | vue.esm.js |
+| **Runtime版本** | vue.runtime.js | vue.runtime.common.js | vue.runtime.esm.js |
+### 入口文件
 
 
 ```javascript
@@ -58,19 +68,7 @@ yarn debug
 ```
 
 
-
-### 构建后的版本
-
-打包后会产生很多类型的文件，默认的vue是Runtime +  UMD 版本的构建，也是vue-cli默认导出的版本。
-
-runtime版本是不包含Compiler的版本。其中带min的是压缩版本，适用于线上生产环境。
-
-| 模块类型| UMD 规范 | CommonJS 规范| ES Module 规范 |
-| --- | --- | --- | --- |
-| **全部** | vue.js | vue.common.js | vue.esm.js |
-| **Runtime版本** | vue.runtime.js | vue.runtime.common.js | vue.runtime.esm.js |
-
 ### 面试题总结
 
-* 同时设置了render和template会这么解析？
+* 同时设置了render和template会怎么解析？
 * el可以设置为html或者body元素吗，设置了会怎么样

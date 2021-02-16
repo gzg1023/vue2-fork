@@ -8,6 +8,7 @@ export * from './element'
 
 /**
  * Query an element selector if it's not an element already.
+ * 支持选择器或DOM节点
  */
 export function query (el: string | Element): Element {
   if (typeof el === 'string') {

@@ -5,6 +5,8 @@ import { FunctionalRenderContext } from 'core/vdom/create-functional-component'
 
 initGlobalAPI(Vue)
 
+
+// 服务端渲染有关代码
 Object.defineProperty(Vue.prototype, '$isServer', {
   get: isServerRendering
 })
@@ -20,7 +22,7 @@ Object.defineProperty(Vue.prototype, '$ssrContext', {
 Object.defineProperty(Vue, 'FunctionalRenderContext', {
   value: FunctionalRenderContext
 })
-
+// 定义vue版本
 Vue.version = '__VERSION__'
 
 export default Vue

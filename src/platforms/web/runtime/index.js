@@ -16,7 +16,9 @@ import {
 } from 'web/util/index'
 
 import { patch } from './patch'
+// v-model v-show
 import platformDirectives from './directives/index'
+//   Transition, TransitionGroup组件  
 import platformComponents from './components/index'
 
 // install platform specific utils
@@ -26,14 +28,17 @@ Vue.config.isReservedAttr = isReservedAttr
 Vue.config.getTagNamespace = getTagNamespace
 Vue.config.isUnknownElement = isUnknownElement
 
-// install platform runtime directives & components
+// install platform runtime directives & components 
+// 把web相关功能都合并到Vue.options中
 extend(Vue.options.directives, platformDirectives)
 extend(Vue.options.components, platformComponents)
 
-// install platform patch function
+// install platform patch function 
+// inBrowser  typeof window !== 'undefined'
 Vue.prototype.__patch__ = inBrowser ? patch : noop
 
 // public mount method
+// 渲染DOM的函数
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
@@ -43,6 +48,7 @@ Vue.prototype.$mount = function (
 }
 
 // devtools global hook
+// 配合vue的浏览器开发者工具
 /* istanbul ignore next */
 if (inBrowser) {
   setTimeout(() => {

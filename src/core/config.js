@@ -7,7 +7,7 @@ import {
 } from 'shared/util'
 
 import { LIFECYCLE_HOOKS } from 'shared/constants'
-
+// Vue全局配置的api
 export type Config = {
   // user
   optionMergeStrategies: { [key: string]: Function };
