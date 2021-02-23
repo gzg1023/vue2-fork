@@ -5,19 +5,20 @@ import { eventsMixin } from './events'
 import { lifecycleMixin } from './lifecycle'
 import { warn } from '../util/index'
 // 构造函数类
-function Vue (options) {
+function Vue(options) {
   if (process.env.NODE_ENV !== 'production' &&
     !(this instanceof Vue)
   ) {
     warn('Vue is a constructor and should be called with the `new` keyword')
   }
+  // 由initMixin初始化，在创建实例时候调用
   this._init(options)
 }
 // 通过mixin混入添加方法，都是通过prototype来添加，
 // 这样可以分别管理不同的方法
 // 初始化vm
 initMixin(Vue)
-// 初始化data props set delete watch
+// 初始化 $data $props $set $delete $watch
 stateMixin(Vue)
 // 初始化@on @once @off @emit方法
 eventsMixin(Vue)

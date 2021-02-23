@@ -29,6 +29,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
       )
     }
   }
+  // 初始化config对象，不一定用于响应式数据
   Object.defineProperty(Vue, 'config', configDef)
 
   // exposed util methods.
@@ -51,20 +52,26 @@ export function initGlobalAPI (Vue: GlobalAPI) {
     return obj
   }
 
-  // 创建options对象
+  // 创建options对象，无原型（提高性能）
+  // 存储全局component/directive/filters
   Vue.options = Object.create(null)
   ASSET_TYPES.forEach(type => {
+    // 创建生命周期对象
     Vue.options[type + 's'] = Object.create(null)
   })
 
   // this is used to identify the "base" constructor to extend all plain-object
   // components with in Weex's multi-instance scenarios.
   Vue.options._base = Vue
-
+  // 以下注册的都是全局api
+  // 注册keep-alive组件
   extend(Vue.options.components, builtInComponents)
-
+  // 初始化use方法，用于注册组件
   initUse(Vue)
+  // 初始化mixin混入功能
   initMixin(Vue)
+  // 初始化extend方法
   initExtend(Vue)
+  // 初始化Vue.directive Vue.component Vue.filter
   initAssetRegisters(Vue)
 }

@@ -9,7 +9,7 @@ import { mark, measure } from '../util/perf'
 import { initLifecycle, callHook } from './lifecycle'
 import { initProvide, initInjections } from './inject'
 import { extend, mergeOptions, formatComponentName } from '../util/index'
-
+// 实例的唯一标识
 let uid = 0
 
 export function initMixin(Vue: Class<Component>) {
@@ -18,6 +18,7 @@ export function initMixin(Vue: Class<Component>) {
     // a uid
     vm._uid = uid++
 
+    // 性能测试相关代码
     let startTag, endTag
     /* istanbul ignore if */
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
@@ -27,6 +28,7 @@ export function initMixin(Vue: Class<Component>) {
     }
 
     // a flag to avoid this being observed
+    // 标识是vue实例，不需要被响应式处理
     vm._isVue = true
     // merge options
     if (options && options._isComponent) {
@@ -45,17 +47,27 @@ export function initMixin(Vue: Class<Component>) {
     if (process.env.NODE_ENV !== 'production') {
       initProxy(vm)
     } else {
+      // 生产环境渲染对象就是自己
       vm._renderProxy = vm
     }
     // expose real self
     vm._self = vm
+    // 初始化vue实例的各种东西
+    // 初始化生命周期相关变量
     initLifecycle(vm)
+    // 初始化当前组件的事件监听器等内容
     initEvents(vm)
+    // 初始化slot $attrs $listeners 相关属性
     initRender(vm)
+    // 触发beforeCreate生命周期钩子函数
     callHook(vm, 'beforeCreate')
+    // 实现依赖注入（start）
     initInjections(vm) // resolve injections before data/props
+    // 初始化props methods data computed watch
     initState(vm)
+    // 实现依赖注入（end）
     initProvide(vm) // resolve provide after data/props
+    // 触发created生命周期钩子函数
     callHook(vm, 'created')
 
     /* istanbul ignore if */
