@@ -66,9 +66,3 @@ src/platforms/web/entry-runtime-with-compiler.js
 ```javascript
 yarn debug
 ```
-
-
-### 面试题总结
-
-* 同时设置了render和template会怎么解析？
-* el可以设置为html或者body元素吗，设置了会怎么样

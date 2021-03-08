@@ -36,7 +36,9 @@ export function parsePath(path: string): any {
   if (bailRE.test(path)) {
     return
   }
+  // 如果是对象是通过'a.b'来取值
   const segments = path.split('.')
+  // 返回一个新函数
   return function (obj) {
     for (let i = 0; i < segments.length; i++) {
       if (!obj) return
