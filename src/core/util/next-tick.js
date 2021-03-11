@@ -9,7 +9,7 @@ export let isUsingMicroTask = false
 
 const callbacks = []
 let pending = false
-
+// 依次执行任务队列的回调函数
 function flushCallbacks() {
   pending = false
   const copies = callbacks.slice(0)
@@ -41,6 +41,7 @@ let timerFunc
 /* istanbul ignore next, $flow-disable-line */
 
 // 如果Promise存在就用Promise实现，不存在就用MutationObserver，排到下一个微任务队列中
+// 默认使用Promise
 if (typeof Promise !== 'undefined' && isNative(Promise)) {
   const p = Promise.resolve()
   timerFunc = () => {
@@ -53,6 +54,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
     if (isIOS) setTimeout(noop)
   }
   isUsingMicroTask = true
+  // 兼容低版本手机浏览器
 } else if (!isIE && typeof MutationObserver !== 'undefined' && (
   isNative(MutationObserver) ||
   // PhantomJS and iOS 7.x
@@ -72,6 +74,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
     textNode.data = String(counter)
   }
   isUsingMicroTask = true
+  // setImmediate用来兼容ie浏览器
 } else if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
   // Fallback to setImmediate.
   // Technically it leverages the (macro) task queue,
@@ -85,12 +88,13 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
     setTimeout(flushCallbacks, 0)
   }
 }
-
+// vm.$nextTick或 Vue.nextTick
 export function nextTick(cb?: Function, ctx?: Object) {
   let _resolve
   callbacks.push(() => {
     if (cb) {
       try {
+        // 执行用户传入的cb函数
         cb.call(ctx)
       } catch (e) {
         handleError(e, ctx, 'nextTick')
@@ -99,11 +103,14 @@ export function nextTick(cb?: Function, ctx?: Object) {
       _resolve(ctx)
     }
   })
+  // 用来标识同一个时间只能执行一次
   if (!pending) {
     pending = true
+    // 优先使用微任务/ 其次用宏任务
     timerFunc()
   }
   // $flow-disable-line
+  // 当 nextTick 不传 cb 参数的时候，提供一个 Promise 化的调用nextTick().then(() => {})
   if (!cb && typeof Promise !== 'undefined') {
     return new Promise(resolve => {
       _resolve = resolve

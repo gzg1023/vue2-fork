@@ -66,6 +66,7 @@ export default class Watcher {
       this.deep = this.user = this.lazy = this.sync = false
     }
     this.cb = cb
+    // 唯一的id
     this.id = ++uid // uid for batching
     // 标识为活动watcher
     this.active = true
@@ -175,6 +176,7 @@ export default class Watcher {
    */
   update() {
     /* istanbul ignore else */
+    // lazy和sync默认是false
     if (this.lazy) {
       this.dirty = true
     } else if (this.sync) {
@@ -241,6 +243,7 @@ export default class Watcher {
   /**
    * Remove self from all dependencies' subscriber list.
    */
+  // 情况依赖和_watcher对象，并设置状态为 非活动状态
   teardown() {
     if (this.active) {
       // remove self from vm's watcher list

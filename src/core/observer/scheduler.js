@@ -27,6 +27,7 @@ let index = 0
  */
 function resetSchedulerState() {
   index = queue.length = activatedChildren.length = 0
+  // 不需要记录是否处理的id
   has = {}
   if (process.env.NODE_ENV !== 'production') {
     circular = {}
@@ -70,7 +71,7 @@ if (inBrowser && !isIE) {
  */
 function flushSchedulerQueue() {
   currentFlushTimestamp = getNow()
-  // 设置正在进行处理
+  // 设置正在刷新watcher队列
   flushing = true
   let watcher, id
 
@@ -82,6 +83,10 @@ function flushSchedulerQueue() {
   //    user watchers are created before the render watcher)
   // 3. If a component is destroyed during a parent component's watcher run,
   //    its watchers can be skipped.
+  // 排序队列，具体以下任务
+  // 1.组件从父级更新为子级。（因为父母总是在子级之前创建）
+  // 2.组件的用户监视程序在其呈现监视程序之前运行（因为用户观察者先于渲染观察者创建）
+  // 3.如果在父组件的观察者运行期间某个组件被破坏，可以跳过其观察者。
   queue.sort((a, b) => a.id - b.id)
 
   // do not cache length because more watchers might be pushed
@@ -89,10 +94,11 @@ function flushSchedulerQueue() {
   for (index = 0; index < queue.length; index++) {
     watcher = queue[index]
     if (watcher.before) {
+      // 在更新视图之前，触发beforeUpdate生命周期钩子函数
       watcher.before()
     }
     id = watcher.id
-    // 数据变化时，正常运行watcher
+    // 标记id为null，已经在进行的数据
     has[id] = null
     // 运行
     watcher.run()
@@ -114,13 +120,16 @@ function flushSchedulerQueue() {
   }
 
   // keep copies of post queues before resetting state
+  // 备份已经活动。更新的队列
   const activatedQueue = activatedChildren.slice()
   const updatedQueue = queue.slice()
-
+  // 清空队列
   resetSchedulerState()
 
   // call component updated and activated hooks
+  // 触发keep-alive组件更新的activated生命周期钩子
   callActivatedHooks(activatedQueue)
+  // 触发组件的updated生命周期钩子
   callUpdatedHooks(updatedQueue)
 
   // devtool hook

@@ -44,7 +44,7 @@ export function proxy(target: Object, sourceKey: string, key: string) {
   }
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
-
+// 初始化各种属性方法
 export function initState(vm: Component) {
   vm._watchers = []
   const opts = vm.$options
@@ -175,7 +175,7 @@ export function getData(data: Function, vm: Component): any {
 }
 
 const computedWatcherOptions = { lazy: true }
-
+// 初始化计算属性computer （通过计算watcher实现）
 function initComputed(vm: Component, computed: Object) {
   // $flow-disable-line
   const watchers = vm._computedWatchers = Object.create(null)
@@ -302,10 +302,11 @@ function initMethods(vm: Component, methods: Object) {
     vm[key] = typeof methods[key] !== 'function' ? noop : bind(methods[key], vm)
   }
 }
-
+// 初始化watch属性
 function initWatch(vm: Component, watch: Object) {
   for (const key in watch) {
     const handler = watch[key]
+    // watch的handler可以指定多个,会依次执行
     if (Array.isArray(handler)) {
       for (let i = 0; i < handler.length; i++) {
         createWatcher(vm, key, handler[i])
@@ -315,17 +316,22 @@ function initWatch(vm: Component, watch: Object) {
     }
   }
 }
-
+// 解析watch实例
 function createWatcher(
   vm: Component,
   expOrFn: string | Function,
   handler: any,
   options?: Object
 ) {
+  // watch传入的可能是回调函数，或者options
+  // 如果是对象则说明通过对象方式指定的watch
   if (isPlainObject(handler)) {
+    // 存储options
     options = handler
+    // 取出options
     handler = handler.handler
   }
+  // 可以指定回调函数，也可以写函数名，会在vue实例(定于在methods的方法)中查找
   if (typeof handler === 'string') {
     handler = vm[handler]
   }
@@ -352,25 +358,30 @@ export function stateMixin(Vue: Class<Component>) {
       warn(`$props is readonly.`, this)
     }
   }
+  // 添加到vue构造函数中
   Object.defineProperty(Vue.prototype, '$data', dataDef)
   Object.defineProperty(Vue.prototype, '$props', propsDef)
 
   Vue.prototype.$set = set
   Vue.prototype.$delete = del
-
+  //  观察 Vue 实例变化的一个表达式或计算属性函数。回调函数得到的参数为新值和旧值。
+  // 表达式只 接受监督的键路径。对于更复杂的表达式，用一个函数取代。
   Vue.prototype.$watch = function (
-    expOrFn: string | Function,
-    cb: any,
-    options?: Object
+    expOrFn: string | Function, // expOrFn:要监视的 $data 中的属性，可以是表达式或函数
+    cb: any, // callback:数据变化后执行的函数
+    options?: Object // options:可选的选项 deep:布尔类型，深度监听 ，immediate:布尔类型，是否立即执行一次回调函数
   ): Function {
     const vm: Component = this
+    // 如果是对象，说明是指定了handler函数的情况，那么解析
     if (isPlainObject(cb)) {
       return createWatcher(vm, expOrFn, cb, options)
     }
     options = options || {}
+    // 标识为用户watcher
     options.user = true
     // 创建Watcher实例
     const watcher = new Watcher(vm, expOrFn, cb, options)
+    // 如果是含有immediate标识，那么立即触发回调函数
     if (options.immediate) {
       try {
         cb.call(vm, watcher.value)
@@ -378,8 +389,15 @@ export function stateMixin(Vue: Class<Component>) {
         handleError(error, vm, `callback for immediate watcher "${watcher.expression}"`)
       }
     }
+    // 如果是手动通过$watch创建的监听，可以用过unwatch注销，如果是组件内部会随着组件注销
     return function unwatchFn() {
       watcher.teardown()
     }
   }
 }
+// 全部watcher的创建顺序
+/**
+ * 1. 计算属性watcher（computer属性）
+ * 2. 用户watcher（watch属性）
+ * 3. 渲染watcher
+ */

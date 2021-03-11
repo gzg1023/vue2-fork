@@ -79,6 +79,7 @@ export class Observer {
   /**
    * Observe a list of Array items.
    */
+  // 针对数组，把每每一项转成响应式数据
   observeArray(items: Array<any>) {
     for (let i = 0, l = items.length; i < l; i++) {
       observe(items[i])
@@ -115,7 +116,7 @@ function copyAugment(target: Object, src: Object, keys: Array<string>) {
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
  */
-// 转化对象为响应式数据
+// 创建观察者实例，如果成功观察到，则返回新的观察者，没有就创建
 export function observe(value: any, asRootData: ?boolean): Observer | void {
   // 当前对象不需要进行响应式处理
   if (!isObject(value) || value instanceof VNode) {
@@ -144,6 +145,10 @@ export function observe(value: any, asRootData: ?boolean): Observer | void {
 
 /**
  * Define a reactive property on an Object.
+ * 给对象定于响应式的函数方法，重写get/set方法
+ * 为一个对象定义一个响应式的属性，
+ * 每一个属性对应一个 dep 对象 如果该属性的值是对象，
+ * 继续调用 observe 如果给属性赋新值，继续调用 observe 如果数据更新发送通知
  */
 export function defineReactive(
   obj: Object,
@@ -170,17 +175,22 @@ export function defineReactive(
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
+    // 处理依赖搜集和返回本身的值
     get: function reactiveGetter() {
       const value = getter ? getter.call(obj) : val
       if (Dep.target) {
+        // 当前属性收集依赖
         dep.depend()
         if (childOb) {
+          // 数组对象的子元素收集依赖。类型可能是对象或者数组
           childOb.dep.depend()
+          // 如果是数组深拷贝一份数据，并且把每个子元素进行依赖搜集
           if (Array.isArray(value)) {
             dependArray(value)
           }
         }
       }
+      // 返回本身属性值
       return value
     },
     set: function reactiveSetter(newVal) {
@@ -193,6 +203,7 @@ export function defineReactive(
       if (process.env.NODE_ENV !== 'production' && customSetter) {
         customSetter()
       }
+      // 如果没有 setter 直接返回，有的话就调用。或者设置新增
       // #7981: for accessor properties without setter
       if (getter && !setter) return
       if (setter) {
@@ -200,6 +211,7 @@ export function defineReactive(
       } else {
         val = newVal
       }
+      //  如果新值是对象，观察子对象并返回 子的 observer 对象
       childOb = !shallow && observe(newVal)
       dep.notify()
     }
@@ -211,22 +223,31 @@ export function defineReactive(
  * triggers change notification if the property doesn't
  * already exist.
  */
+// vm.$set 和 Vue.set的实现基于本方法，作用是响应式修改数组或对象的值
 export function set(target: Array<any> | Object, key: any, val: any): any {
+  // 如果是undefined或者null或者是原始类型的值，触发一个警告
   if (process.env.NODE_ENV !== 'production' &&
     (isUndef(target) || isPrimitive(target))
   ) {
     warn(`Cannot set reactive property on undefined, null, or primitive value: ${(target: any)}`)
   }
+  // 处理数组，且是合法的索引（参数大于0且不是浮点数，且是有限数字）
   if (Array.isArray(target) && isValidArrayIndex(key)) {
+    // 如果越界的索引，那么改变数组长度
     target.length = Math.max(target.length, key)
+    // 通过splice来修改数组，splice是改造过的响应式方法
     target.splice(key, 1, val)
     return val
   }
+  // 处理对象,当前key在对象中，且不在对象的原型中
   if (key in target && !(key in Object.prototype)) {
+    // 直接通过交换值的方式触发响应式
     target[key] = val
     return val
   }
+  // 获取 target 中的 observer 对象
   const ob = (target: any).__ob__
+  // 如果已经是vue的实例，直接返回该值
   if (target._isVue || (ob && ob.vmCount)) {
     process.env.NODE_ENV !== 'production' && warn(
       'Avoid adding reactive properties to a Vue instance or its root $data ' +
@@ -234,11 +255,14 @@ export function set(target: Array<any> | Object, key: any, val: any): any {
     )
     return val
   }
+  // 如果不存在ob，说明不是响应式对象，直接返回该值
   if (!ob) {
     target[key] = val
     return val
   }
+  // 把ob的可以设置为响应式对象
   defineReactive(ob.value, key, val)
+  // 发送通知
   ob.dep.notify()
   return val
 }
@@ -246,12 +270,14 @@ export function set(target: Array<any> | Object, key: any, val: any): any {
 /**
  * Delete a property and trigger change if necessary.
  */
+// vm.$delete 和 Vue.delete的实现基于本方法，作用是删除对象的 property
 export function del(target: Array<any> | Object, key: any) {
   if (process.env.NODE_ENV !== 'production' &&
     (isUndef(target) || isPrimitive(target))
   ) {
     warn(`Cannot delete reactive property on undefined, null, or primitive value: ${(target: any)}`)
   }
+  // 原理同set
   if (Array.isArray(target) && isValidArrayIndex(key)) {
     target.splice(key, 1)
     return
@@ -267,6 +293,7 @@ export function del(target: Array<any> | Object, key: any) {
   if (!hasOwn(target, key)) {
     return
   }
+  // 通过delete关键字删除该对象的值
   delete target[key]
   if (!ob) {
     return
@@ -281,7 +308,9 @@ export function del(target: Array<any> | Object, key: any) {
 function dependArray(value: Array<any>) {
   for (let e, i = 0, l = value.length; i < l; i++) {
     e = value[i]
+    // 对数组子元素进行依赖搜集
     e && e.__ob__ && e.__ob__.dep.depend()
+    // 处理嵌套数组
     if (Array.isArray(e)) {
       dependArray(e)
     }
