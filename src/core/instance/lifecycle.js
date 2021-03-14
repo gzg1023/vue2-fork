@@ -58,16 +58,20 @@ export function initLifecycle(vm: Component) {
 }
 
 export function lifecycleMixin(Vue: Class<Component>) {
+  // _update的核心功能 就是调用__patch__函数
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
+    // 用当前的el和vnode 当作对比中上一次的值
     const prevEl = vm.$el
     const prevVnode = vm._vnode
     const restoreActiveInstance = setActiveInstance(vm)
     vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
+    // 不存在prevVnode说明是首次渲染
     if (!prevVnode) {
       // initial render
+      // 第一次时候 传入真实el和vnode ，把真实dom转为虚拟dom。并做完下次的返回结果
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
       // updates
@@ -189,6 +193,7 @@ export function mountComponent(
     }
   } else {
     updateComponent = () => {
+      // 接受Vnode对象和
       vm._update(vm._render(), hydrating)
     }
   }

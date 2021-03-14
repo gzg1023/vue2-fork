@@ -7,7 +7,7 @@ export const emptyObject = Object.freeze({})
 export function isUndef(v: any): boolean % checks {
   return v === undefined || v === null
 }
-
+// 判断是否是已经存在的数据
 export function isDef(v: any): boolean % checks {
   return v !== undefined && v !== null
 }
