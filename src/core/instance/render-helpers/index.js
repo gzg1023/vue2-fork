@@ -11,19 +11,22 @@ import { renderStatic, markOnce } from './render-static'
 import { bindObjectListeners } from './bind-object-listeners'
 import { resolveScopedSlots } from './resolve-scoped-slots'
 import { bindDynamicKeys, prependModifier } from './bind-dynamic-keys'
-
-export function installRenderHelpers (target: any) {
+// render内置函数
+export function installRenderHelpers(target: any) {
   target._o = markOnce
   target._n = toNumber
+  // _s转为文本
   target._s = toString
   target._l = renderList
   target._t = renderSlot
   target._q = looseEqual
   target._i = looseIndexOf
+  // _m处理静态内容
   target._m = renderStatic
   target._f = resolveFilter
   target._k = checkKeyCodes
   target._b = bindObjectProps
+  // _v创建空白文本节点/包括换行
   target._v = createTextVNode
   target._e = createEmptyVNode
   target._u = resolveScopedSlots

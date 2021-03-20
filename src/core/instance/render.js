@@ -77,7 +77,7 @@ export function renderMixin(Vue: Class<Component>) {
     const { render, _parentVnode } = vm.$options
 
     if (_parentVnode) {
-      vm.$scopedSlots = normalizeScopedSlots(
+      vm.$scopedSlots = normalizeScopeds(
         _parentVnode.data.scopedSlots,
         vm.$slots,
         vm.$scopedSlots

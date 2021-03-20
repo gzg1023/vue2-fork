@@ -2,8 +2,10 @@
 
 /**
  * Runtime helper for rendering static trees.
+ * 对静态内容进行缓存优化函数 
+ * 静态内容：如没有差值表达式的纯html文本标签渲染
  */
-export function renderStatic (
+export function renderStatic(
   index: number,
   isInFor: boolean
 ): VNode | Array<VNode> {
@@ -28,7 +30,7 @@ export function renderStatic (
  * Runtime helper for v-once.
  * Effectively it means marking the node as static with a unique key.
  */
-export function markOnce (
+export function markOnce(
   tree: VNode | Array<VNode>,
   index: number,
   key: string
@@ -37,7 +39,7 @@ export function markOnce (
   return tree
 }
 
-function markStatic (
+function markStatic(
   tree: VNode | Array<VNode>,
   key: string,
   isOnce: boolean
@@ -53,7 +55,7 @@ function markStatic (
   }
 }
 
-function markStaticNode (node, key, isOnce) {
+function markStaticNode(node, key, isOnce) {
   node.isStatic = true
   node.key = key
   node.isOnce = isOnce
