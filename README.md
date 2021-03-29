@@ -66,3 +66,15 @@ src/platforms/web/entry-runtime-with-compiler.js
 ```javascript
 yarn debug
 ```
+
+调试vue源码
+  
+```javascript
+运行一个web服务 如anywhere 或者vscode live server
+
+访问examples文件夹的debug-vue项目
+
+在浏览器找到Sources，找到src文件目录，找到需要调试的文件
+
+设置断点，开始调试vue源码文件
+```

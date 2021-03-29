@@ -4,9 +4,10 @@ import { extend } from 'shared/util'
 import { detectErrors } from './error-detector'
 import { createCompileToFunctionFn } from './to-function'
 
-export function createCompilerCreator (baseCompile: Function): Function {
-  return function createCompiler (baseOptions: CompilerOptions) {
-    function compile (
+export function createCompilerCreator(baseCompile: Function): Function {
+  return function createCompiler(baseOptions: CompilerOptions) {
+    // compile函数
+    function compile(
       template: string,
       options?: CompilerOptions
     ): CompiledResult {
@@ -17,7 +18,7 @@ export function createCompilerCreator (baseCompile: Function): Function {
       let warn = (msg, range, tip) => {
         (tip ? tips : errors).push(msg)
       }
-
+      // 合并options
       if (options) {
         if (process.env.NODE_ENV !== 'production' && options.outputSourceRange) {
           // $flow-disable-line
@@ -69,6 +70,7 @@ export function createCompilerCreator (baseCompile: Function): Function {
 
     return {
       compile,
+      // compileToFunctions是一个函数
       compileToFunctions: createCompileToFunctionFn(compile)
     }
   }

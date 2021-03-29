@@ -25,9 +25,9 @@ let index = 0
 /**
  * Reset the scheduler's state.
  */
-function resetSchedulerState() {
+function resetSchedulerState () {
   index = queue.length = activatedChildren.length = 0
-  // 不需要记录是否处理的id
+// 不需要记录是否处理的id
   has = {}
   if (process.env.NODE_ENV !== 'production') {
     circular = {}
@@ -69,9 +69,9 @@ if (inBrowser && !isIE) {
 /**
  * Flush both queues and run the watchers.
  */
-function flushSchedulerQueue() {
+function flushSchedulerQueue () {
   currentFlushTimestamp = getNow()
-  // 设置正在刷新watcher队列
+   // 设置正在刷新watcher队列
   flushing = true
   let watcher, id
 
@@ -94,7 +94,7 @@ function flushSchedulerQueue() {
   for (index = 0; index < queue.length; index++) {
     watcher = queue[index]
     if (watcher.before) {
-      // 在更新视图之前，触发beforeUpdate生命周期钩子函数
+       // 在更新视图之前，触发beforeUpdate生命周期钩子函数
       watcher.before()
     }
     id = watcher.id
@@ -120,7 +120,7 @@ function flushSchedulerQueue() {
   }
 
   // keep copies of post queues before resetting state
-  // 备份已经活动。更新的队列
+    // 备份已经活动。更新的队列
   const activatedQueue = activatedChildren.slice()
   const updatedQueue = queue.slice()
   // 清空队列
@@ -139,7 +139,7 @@ function flushSchedulerQueue() {
   }
 }
 
-function callUpdatedHooks(queue) {
+function callUpdatedHooks (queue) {
   let i = queue.length
   while (i--) {
     const watcher = queue[i]
@@ -154,14 +154,14 @@ function callUpdatedHooks(queue) {
  * Queue a kept-alive component that was activated during patch.
  * The queue will be processed after the entire tree has been patched.
  */
-export function queueActivatedComponent(vm: Component) {
+export function queueActivatedComponent (vm: Component) {
   // setting _inactive to false here so that a render function can
   // rely on checking whether it's in an inactive tree (e.g. router-view)
   vm._inactive = false
   activatedChildren.push(vm)
 }
 
-function callActivatedHooks(queue) {
+function callActivatedHooks (queue) {
   for (let i = 0; i < queue.length; i++) {
     queue[i]._inactive = true
     activateChildComponent(queue[i], true /* true */)
@@ -173,15 +173,13 @@ function callActivatedHooks(queue) {
  * Jobs with duplicate IDs will be skipped unless it's
  * pushed when the queue is being flushed.
  */
-// watcher队列
-export function Watcher(watcher: Watcher) {
+export function queueWatcher (watcher: Watcher) {
   const id = watcher.id
   // 防止重复处理
-  if (has[id] == null) {
+    if (has[id] == null) {
     has[id] = true
     // flushing表示正在刷新，如果是true则表示正在被处理
     if (!flushing) {
-      // 没有被处理，放到队列最后
       queue.push(watcher)
     } else {
       // if already flushing, splice the watcher based on its id

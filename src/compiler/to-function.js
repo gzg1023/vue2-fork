@@ -8,8 +8,8 @@ type CompiledFunctionResult = {
   render: Function;
   staticRenderFns: Array<Function>;
 };
-
-function createFunction (code, errors) {
+// 把字符串代码，通过new Function转为执行的函数
+function createFunction(code, errors) {
   try {
     return new Function(code)
   } catch (err) {
@@ -18,10 +18,10 @@ function createFunction (code, errors) {
   }
 }
 
-export function createCompileToFunctionFn (compile: Function): Function {
+export function createCompileToFunctionFn(compile: Function): Function {
   const cache = Object.create(null)
 
-  return function compileToFunctions (
+  return function compileToFunctions(
     template: string,
     options?: CompilerOptions,
     vm?: Component
@@ -49,6 +49,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // check cache
+    // 读取缓存，空间换时间
     const key = options.delimiters
       ? String(options.delimiters) + template
       : template
@@ -57,6 +58,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // compile
+    // 保存编译结果
     const compiled = compile(template, options)
 
     // check compilation errors/tips

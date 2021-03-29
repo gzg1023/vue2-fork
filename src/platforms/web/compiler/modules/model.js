@@ -9,7 +9,7 @@
  *   <input v-else-if="type === 'radio'" type="radio" v-model="data[type]">
  *   <input v-else :type="type" v-model="data[type]">
  */
-
+// 处理v-model和v-if同时使用的情况
 import {
   addRawAttr,
   getBindingAttr,
@@ -23,7 +23,7 @@ import {
   createASTElement
 } from 'compiler/parser/index'
 
-function preTransformNode (el: ASTElement, options: CompilerOptions) {
+function preTransformNode(el: ASTElement, options: CompilerOptions) {
   if (el.tag === 'input') {
     const map = el.attrsMap
     if (!map['v-model']) {
@@ -85,7 +85,7 @@ function preTransformNode (el: ASTElement, options: CompilerOptions) {
   }
 }
 
-function cloneASTElement (el) {
+function cloneASTElement(el) {
   return createASTElement(el.tag, el.attrsList.slice(), el.parent)
 }
 
