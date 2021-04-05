@@ -1,5 +1,5 @@
 export const SSR_ATTR = 'data-server-rendered'
-
+// 全局的属性/方法 如 Vue.component  Vue.directive
 export const ASSET_TYPES = [
   'component',
   'directive',

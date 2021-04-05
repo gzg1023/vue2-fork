@@ -17,7 +17,8 @@ function createFunction(code, errors) {
     return noop
   }
 }
-
+// 在进入compileToFunctions以后，会先检查缓存中是否有已经编译好的结果，如果有结果则直接从缓存中读取。
+// 这样做防止每次同样的模板都要进行重复的编译工作。
 export function createCompileToFunctionFn(compile: Function): Function {
   const cache = Object.create(null)
 

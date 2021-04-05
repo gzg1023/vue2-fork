@@ -9,6 +9,7 @@ export function initExtend (Vue: GlobalAPI) {
    * Each instance constructor, including Vue, has a unique
    * cid. This enables us to create wrapped "child
    * constructors" for prototypal inheritance and cache them.
+   * 包裹子节点的构造函数，并添加缓存
    */
   Vue.cid = 0
   let cid = 1
@@ -18,13 +19,15 @@ export function initExtend (Vue: GlobalAPI) {
    */
   Vue.extend = function (extendOptions: Object): Function {
     extendOptions = extendOptions || {}
+    // Super就是vue构造函数
     const Super = this
     const SuperId = Super.cid
+    // 缓存构造函数，如果存在缓存直接返回
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {})
     if (cachedCtors[SuperId]) {
       return cachedCtors[SuperId]
     }
-
+    // 获取组件的name
     const name = extendOptions.name || Super.options.name
     if (process.env.NODE_ENV !== 'production' && name) {
       validateComponentName(name)
@@ -47,6 +50,7 @@ export function initExtend (Vue: GlobalAPI) {
     // For props and computed properties, we define the proxy getters on
     // the Vue instances at extension time, on the extended prototype. This
     // avoids Object.defineProperty calls for each instance created.
+    // 同proxy代理添加props和computed属性，防止触发Object.defineProperty
     if (Sub.options.props) {
       initProps(Sub)
     }
@@ -77,6 +81,7 @@ export function initExtend (Vue: GlobalAPI) {
     Sub.sealedOptions = extend({}, Sub.options)
 
     // cache constructor
+    // 通过id缓存Sub
     cachedCtors[SuperId] = Sub
     return Sub
   }
@@ -85,6 +90,7 @@ export function initExtend (Vue: GlobalAPI) {
 function initProps (Comp) {
   const props = Comp.options.props
   for (const key in props) {
+    // 把_props代理到原型上
     proxy(Comp.prototype, `_props`, key)
   }
 }

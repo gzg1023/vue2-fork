@@ -275,7 +275,7 @@ function checkComponents (options: Object) {
     validateComponentName(key)
   }
 }
-
+// 验证组件名称是否合法，不能使用h5内置名称，或者重复的名称
 export function validateComponentName (name: string) {
   if (!new RegExp(`^[a-zA-Z][\\-\\.0-9_${unicodeRegExp.source}]*$`).test(name)) {
     warn(

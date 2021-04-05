@@ -13,12 +13,13 @@ const idToTemplate = cached(id => {
   const el = query(id)
   return el && el.innerHTML
 })
-// 初始化函数
+// 初始化装载函数
 const mount = Vue.prototype.$mount
 /**
  * 
  * @param {*} el DOM元素
  * @param {*} hydrating 标志是否为ssr的flag true表示ssr应用
+ * 构建整个vue组件 render构建过程
  */
 Vue.prototype.$mount = function (
   el?: string | Element,
