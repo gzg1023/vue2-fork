@@ -35,6 +35,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   // exposed util methods.
   // NOTE: these are not considered part of the public API - avoid relying on
   // them unless you are aware of the risk.
+  // 避免使用的api
   Vue.util = {
     warn,
     extend,
@@ -53,10 +54,10 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   }
 
   // 创建options对象，无原型（提高性能）
-  // 存储全局component/directive/filters
+  // 
   Vue.options = Object.create(null)
   ASSET_TYPES.forEach(type => {
-    // 创建生命周期对象
+    // 存储全局component/directive/filters
     Vue.options[type + 's'] = Object.create(null)
   })
 
@@ -65,7 +66,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   // 框架内置的基本对象
   Vue.options._base = Vue
   // 以下注册的都是全局api
-  // 注册keep-alive组件
+  // 全局注册keep-alive组件
   extend(Vue.options.components, builtInComponents)
   // 初始化use方法，用于注册组件
   initUse(Vue)
@@ -73,6 +74,6 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   initMixin(Vue)
   // 初始化extend方法
   initExtend(Vue)
-  // 初始化Vue.directive  Vue.component Vue.filter
+  // 初始化Vue.directive  Vue.component Vue.filter 静态方法
   initAssetRegisters(Vue)
 }

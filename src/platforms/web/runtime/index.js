@@ -16,11 +16,9 @@ import {
 } from 'web/util/index'
 
 import { patch } from './patch'
-// v-model v-show
 import platformDirectives from './directives/index'
-//   Transition, TransitionGroup组件  
 import platformComponents from './components/index'
-
+// 覆盖默认导出的 config 对象的属性
 // install platform specific utils
 Vue.config.mustUseProp = mustUseProp
 Vue.config.isReservedTag = isReservedTag
@@ -30,7 +28,9 @@ Vue.config.isUnknownElement = isUnknownElement
 
 // install platform runtime directives & components 
 // 把web相关功能都合并到Vue.options中
+// 注册 v-model v-show指令
 extend(Vue.options.directives, platformDirectives)
+// 注册 Transition, TransitionGroup组件  
 extend(Vue.options.components, platformComponents)
 
 // install platform patch function 
@@ -78,5 +78,12 @@ if (inBrowser) {
     }
   }, 0)
 }
+
+
+// /src/platforms/web/runtime/index.js 文件作用
+// 设置平台化的 Vue.config。
+// 在 Vue.options 上混合了两个指令(directives)，分别是 model 和 show。
+// 在 Vue.options 上混合了两个组件(components)，分别是 Transition 和 TransitionGroup。
+// 在 Vue.prototype 上添加了两个方法：__patch__ 和 $mount
 
 export default Vue

@@ -298,6 +298,7 @@ export function validateComponentName (name: string) {
 function normalizeProps (options: Object, vm: ?Component) {
   const props = options.props
   if (!props) return
+  // 保存规范化后的结果
   const res = {}
   let i, val, name
   if (Array.isArray(props)) {
@@ -306,6 +307,7 @@ function normalizeProps (options: Object, vm: ?Component) {
       val = props[i]
       if (typeof val === 'string') {
         name = camelize(val)
+        // 如果是传入数组的props默认类型是null
         res[name] = { type: null }
       } else if (process.env.NODE_ENV !== 'production') {
         warn('props must be strings when using array syntax.')
@@ -385,6 +387,7 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
  * Merge two option objects into a new one.
  * Core utility used in both instantiation and inheritance.
  */
+// 合并两个选项对象为一个新的对象
 export function mergeOptions (
   parent: Object,
   child: Object,
@@ -397,7 +400,7 @@ export function mergeOptions (
   if (typeof child === 'function') {
     child = child.options
   }
-
+  // 规范化props，inject，directive 可能通过对象/数组等传入在内部进行统一的规范化处理
   normalizeProps(child, vm)
   normalizeInject(child, vm)
   normalizeDirectives(child)
@@ -419,6 +422,8 @@ export function mergeOptions (
 
   const options = {}
   let key
+  // 使用在 parent 或者 child 对象中出现的 key(即选项的名字) 作为参数调用 mergeField 函数，
+  // 真正合并的操作实际在 mergeField 函数中
   for (key in parent) {
     mergeField(key)
   }

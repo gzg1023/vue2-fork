@@ -11,7 +11,7 @@ import {
   inBrowser,
   isIE
 } from '../util/index'
-
+// 最大更新次数
 export const MAX_UPDATE_COUNT = 100
 
 const queue: Array<Watcher> = []
@@ -105,6 +105,7 @@ function flushSchedulerQueue () {
     // in dev build, check and stop circular updates.
     if (process.env.NODE_ENV !== 'production' && has[id] != null) {
       circular[id] = (circular[id] || 0) + 1
+      // 如果watch连续更新超过100次，那么可能存在watch嵌套的引用
       if (circular[id] > MAX_UPDATE_COUNT) {
         warn(
           'You may have an infinite update loop ' + (

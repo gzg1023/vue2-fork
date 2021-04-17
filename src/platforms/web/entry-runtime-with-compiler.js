@@ -3,17 +3,17 @@
 import config from 'core/config'
 import { warn, cached } from 'core/util/index'
 import { mark, measure } from 'core/util/perf'
-
+// 导入运行时vue
 import Vue from './runtime/index'
 import { query } from './util/index'
 import { compileToFunctions } from './compiler/index'
 import { shouldDecodeNewlines, shouldDecodeNewlinesForHref } from './util/compat'
-
+// 获取拥有指定 id 属性的元素的 innerHTML
 const idToTemplate = cached(id => {
   const el = query(id)
   return el && el.innerHTML
 })
-// 初始化装载函数
+// 缓存运行时版 Vue 的 Vue.prototype.$mount 方法，并且进行了重写。
 const mount = Vue.prototype.$mount
 /**
  * 
@@ -96,6 +96,7 @@ Vue.prototype.$mount = function (
  * Get outerHTML of elements, taking care
  * of SVG elements in IE as well.
  */
+// 获取一个元素的 outerHTML
 function getOuterHTML (el: Element): string {
   if (el.outerHTML) {
     return el.outerHTML

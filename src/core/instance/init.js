@@ -38,7 +38,9 @@ export function initMixin(Vue: Class<Component>) {
       initInternalComponent(vm, options)
     } else {
       vm.$options = mergeOptions(
+        // vue本身的选项，如全局api，vue内置组件等
         resolveConstructorOptions(vm.constructor),
+        // 用户传入的option，如el，data，template等
         options || {},
         vm
       )
@@ -71,6 +73,7 @@ export function initMixin(Vue: Class<Component>) {
     callHook(vm, 'created')
 
     /* istanbul ignore if */
+    // 全局的Vue.config.performance配置。设置为true可以开启性能追踪
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
       vm._name = formatComponentName(vm, false)
       mark(endTag)
@@ -101,10 +104,13 @@ export function initInternalComponent(vm: Component, options: InternalComponentO
     opts.staticRenderFns = options.staticRenderFns
   }
 }
-
+// 解析构造者的 options
 export function resolveConstructorOptions(Ctor: Class<Component>) {
+  // Ctor 就是 vm.constructor 可能随着实例创建的对象而修改并非一直是vue可能是vue子类
   let options = Ctor.options
+  // 如果是子类才会包含super，如通过Vue.extend创建的内容
   if (Ctor.super) {
+    // 递归的处理子类
     const superOptions = resolveConstructorOptions(Ctor.super)
     const cachedSuperOptions = Ctor.superOptions
     if (superOptions !== cachedSuperOptions) {

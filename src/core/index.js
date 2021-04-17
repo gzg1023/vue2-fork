@@ -25,5 +25,8 @@ Object.defineProperty(Vue, 'FunctionalRenderContext', {
 })
 // 定义vue版本
 Vue.version = '__VERSION__'
-
+// src/core/index.js文件作用
+// 首先将核心的 Vue，也就是在 core/instance/index.js 文件中的 Vue，
+// 也可以说是原型被包装(添加属性和方法)后的 Vue 导入，然后使用 initGlobalAPI 方法给 Vue 添加静态方法和属性，除此之外，
+// 在这个文件里，也对原型进行了修改，为其添加了两个属性：$isServer 和 $ssrContext，最后添加了 Vue.version 属性并导出了 Vue
 export default Vue
