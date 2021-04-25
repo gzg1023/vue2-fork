@@ -68,6 +68,7 @@ const componentVNodeHooks = {
     const { context, componentInstance } = vnode
     if (!componentInstance._isMounted) {
       componentInstance._isMounted = true
+      // vue组件执行mounted生命周期钩子
       callHook(componentInstance, 'mounted')
     }
     if (vnode.data.keepAlive) {

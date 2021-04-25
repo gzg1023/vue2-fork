@@ -45,6 +45,7 @@ export function initMixin(Vue: Class<Component>) {
         vm
       )
     }
+     //  _render函数执行中，提供更友好的错误检测能力，不支持Proxy属性就不执行了（🐶）
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
       initProxy(vm)
@@ -55,7 +56,7 @@ export function initMixin(Vue: Class<Component>) {
     // expose real self
     vm._self = vm
     // 初始化vue实例的各种东西
-    // 初始化生命周期相关变量
+    // 初始化配置及生命周期相关变量
     initLifecycle(vm)
     // 初始化当前组件的事件监听器等内容
     initEvents(vm)
@@ -63,11 +64,11 @@ export function initMixin(Vue: Class<Component>) {
     initRender(vm)
     // 触发beforeCreate生命周期钩子函数
     callHook(vm, 'beforeCreate')
-    // 实现依赖注入（start）
+    // 初始化依赖注入的 注入（inject）
     initInjections(vm) // resolve injections before data/props
     // 初始化props methods data computed watch
     initState(vm)
-    // 实现依赖注入（end）
+    // 初始化依赖注入的 依赖（provide）
     initProvide(vm) // resolve provide after data/props
     // 触发created生命周期钩子函数
     callHook(vm, 'created')
@@ -79,7 +80,7 @@ export function initMixin(Vue: Class<Component>) {
       mark(endTag)
       measure(`vue ${vm._name} init`, startTag, endTag)
     }
-    // 通过$mount挂载页面
+    // 调用渲染DOM的函数，对实例进行挂载
     if (vm.$options.el) {
       vm.$mount(vm.$options.el)
     }

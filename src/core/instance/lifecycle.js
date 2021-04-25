@@ -105,6 +105,7 @@ export function lifecycleMixin(Vue: Class<Component>) {
     if (vm._isBeingDestroyed) {
       return
     }
+    // 触发beforeDestroy生命周期钩子
     callHook(vm, 'beforeDestroy')
     vm._isBeingDestroyed = true
     // remove self from parent
@@ -113,6 +114,7 @@ export function lifecycleMixin(Vue: Class<Component>) {
       remove(parent.$children, vm)
     }
     // teardown watchers
+    // 注销watcher
     if (vm._watcher) {
       vm._watcher.teardown()
     }
@@ -130,6 +132,7 @@ export function lifecycleMixin(Vue: Class<Component>) {
     // invoke destroy hooks on current rendered tree
     vm.__patch__(vm._vnode, null)
     // fire destroyed hook
+    // 触发beforeDestroy生命周期钩子
     callHook(vm, 'destroyed')
     // turn off all instance listeners.
     vm.$off()
@@ -143,6 +146,7 @@ export function lifecycleMixin(Vue: Class<Component>) {
     }
   }
 }
+
 
 export function mountComponent(
   vm: Component,
@@ -193,7 +197,7 @@ export function mountComponent(
     }
   } else {
     updateComponent = () => {
-      // 接受Vnode对象和
+      // 调用_update新vdom和真实dom的渲染
       vm._update(vm._render(), hydrating)
     }
   }
@@ -214,6 +218,7 @@ export function mountComponent(
 
   // manually mounted instance, call mounted on self
   // mounted is called for render-created child components in its inserted hook
+  //vm.$vnode 如果为 null，则表明这不是一次组件的初始化过程，而是我们通过外部 new Vue 初始化过程
   if (vm.$vnode == null) {
     vm._isMounted = true
     callHook(vm, 'mounted')

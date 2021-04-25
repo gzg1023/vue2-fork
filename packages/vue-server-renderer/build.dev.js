@@ -63,6 +63,7 @@ function toRawType (value) {
  * Strict object type check. Only returns true
  * for plain JavaScript objects.
  */
+// 判断数据类型是不是对象类型
 function isPlainObject (obj) {
   return _toString.call(obj) === '[object Object]'
 }
@@ -218,6 +219,7 @@ var bind = Function.prototype.bind
 
 /**
  * Mix properties into target object.
+ * 浅拷贝 循环复制对象
  */
 function extend (to, _from) {
   for (var key in _from) {
@@ -524,7 +526,8 @@ function renderAttr (key, value) {
 
 /*  */
 
-var VNode = function VNode (
+// VNode构造类，在snabbdom的基础上添加了vue所需要的一些值
+var VNode = function VNode(
   tag,
   data,
   children,
@@ -544,6 +547,7 @@ var VNode = function VNode (
   this.fnContext = undefined;
   this.fnOptions = undefined;
   this.fnScopeId = undefined;
+  // 从data中获取key
   this.key = data && data.key;
   this.componentOptions = componentOptions;
   this.componentInstance = undefined;
@@ -577,8 +581,8 @@ var createEmptyVNode = function (text) {
   node.isComment = true;
   return node
 };
-
-function createTextVNode (val) {
+// 返回一个空的文本节点
+function createTextVNode(val) {
   return new VNode(undefined, undefined, undefined, String(val))
 }
 
@@ -586,7 +590,7 @@ function createTextVNode (val) {
 // used for static nodes and slot nodes because they may be reused across
 // multiple renders, cloning them avoids errors when DOM manipulations rely
 // on their elm reference.
-function cloneVNode (vnode) {
+function cloneVNode(vnode) {
   var cloned = new VNode(
     vnode.tag,
     vnode.data,
@@ -670,9 +674,10 @@ var unicodeRegExp = /a-zA-Z\u00B7\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u037D\u037F-\
 /**
  * Define a property.
  */
-function def (obj, key, val, enumerable) {
+function def(obj, key, val, enumerable) {
   Object.defineProperty(obj, key, {
     value: val,
+    // 不传默认是false
     enumerable: !!enumerable,
     writable: true,
     configurable: true
@@ -766,13 +771,13 @@ if (typeof Set !== 'undefined' && isNative(Set)) {
 }
 
 var SSR_ATTR = 'data-server-rendered';
-
+// 全局的属性/方法 如 Vue.component  Vue.directive
 var ASSET_TYPES = [
   'component',
   'directive',
   'filter'
 ];
-
+// 所有生命周期钩子
 var LIFECYCLE_HOOKS = [
   'beforeCreate',
   'created',
@@ -789,7 +794,7 @@ var LIFECYCLE_HOOKS = [
 ];
 
 /*  */
-
+// Vue全局配置的api
 
 
 var config = ({
@@ -986,28 +991,30 @@ var uid = 0;
  * A dep is an observable that can have multiple
  * directives subscribing to it.
  */
-var Dep = function Dep () {
+var Dep = function Dep() {
   this.id = uid++;
   this.subs = [];
 };
-
+// 添加依赖对象
 Dep.prototype.addSub = function addSub (sub) {
   this.subs.push(sub);
 };
-
+// 移除依赖
 Dep.prototype.removeSub = function removeSub (sub) {
   remove(this.subs, sub);
 };
-
+// 收集依赖的方法，添加target数组中
 Dep.prototype.depend = function depend () {
   if (Dep.target) {
     Dep.target.addDep(this);
   }
 };
-
+// 通知依赖的方法
 Dep.prototype.notify = function notify () {
   // stabilize the subscriber list first
+  // 克隆一个新数组
   var subs = this.subs.slice();
+  // 以此调用订阅者的更新方法
   for (var i = 0, l = subs.length; i < l; i++) {
     subs[i].update();
   }
@@ -1016,15 +1023,17 @@ Dep.prototype.notify = function notify () {
 // The current target watcher being evaluated.
 // This is globally unique because only one watcher
 // can be evaluated at a time.
+// 重置为null 不影响下次搜集
 Dep.target = null;
 var targetStack = [];
-
-function pushTarget (target) {
+// 入栈，并把传入的watcher复制到当前Dep的目标中
+// 父组件会先入栈，然后子组件入栈，执行完出栈，在执行父组件的watcher
+function pushTarget(target) {
   targetStack.push(target);
   Dep.target = target;
 }
-
-function popTarget () {
+// 观察者依赖出栈
+function popTarget() {
   targetStack.pop();
   Dep.target = targetStack[targetStack.length - 1];
 }
@@ -1036,7 +1045,7 @@ function popTarget () {
 
 var arrayProto = Array.prototype;
 var arrayMethods = Object.create(arrayProto);
-
+// 重写数组的方法，在操作时候可以进行依赖搜集。
 var methodsToPatch = [
   'push',
   'pop',
@@ -1053,7 +1062,8 @@ var methodsToPatch = [
 methodsToPatch.forEach(function (method) {
   // cache original method
   var original = arrayProto[method];
-  def(arrayMethods, method, function mutator () {
+  // 把重写的方法注册到Vue对象中，根据原型链的规则，回先获取实例中的新方法
+  def(arrayMethods, method, function mutator() {
     var args = [], len = arguments.length;
     while ( len-- ) args[ len ] = arguments[ len ];
 
@@ -1086,7 +1096,7 @@ var arrayKeys = Object.getOwnPropertyNames(arrayMethods);
  */
 var shouldObserve = true;
 
-function toggleObserving (value) {
+function toggleObserving(value) {
   shouldObserve = value;
 }
 
@@ -1096,11 +1106,14 @@ function toggleObserving (value) {
  * object's property keys into getter/setters that
  * collect dependencies and dispatch updates.
  */
-var Observer = function Observer (value) {
+// 响应式数据基类
+var Observer = function Observer(value) {
   this.value = value;
   this.dep = new Dep();
   this.vmCount = 0;
+  // 定于__ob__属性
   def(value, '__ob__', this);
+  // 针对数组做响应式分析
   if (Array.isArray(value)) {
     if (hasProto) {
       protoAugment(value, arrayMethods);
@@ -1109,6 +1122,7 @@ var Observer = function Observer (value) {
     }
     this.observeArray(value);
   } else {
+    // 处理对象，转为getter/setter
     this.walk(value);
   }
 };
@@ -1119,6 +1133,7 @@ var Observer = function Observer (value) {
  * value type is Object.
  */
 Observer.prototype.walk = function walk (obj) {
+  // 把对象中每一个key-value都设置为响应式
   var keys = Object.keys(obj);
   for (var i = 0; i < keys.length; i++) {
     defineReactive$$1(obj, keys[i]);
@@ -1128,6 +1143,7 @@ Observer.prototype.walk = function walk (obj) {
 /**
  * Observe a list of Array items.
  */
+// 针对数组，把每每一项转成响应式数据
 Observer.prototype.observeArray = function observeArray (items) {
   for (var i = 0, l = items.length; i < l; i++) {
     observe(items[i]);
@@ -1140,7 +1156,7 @@ Observer.prototype.observeArray = function observeArray (items) {
  * Augment a target Object or Array by intercepting
  * the prototype chain using __proto__
  */
-function protoAugment (target, src) {
+function protoAugment(target, src) {
   /* eslint-disable no-proto */
   target.__proto__ = src;
   /* eslint-enable no-proto */
@@ -1151,7 +1167,7 @@ function protoAugment (target, src) {
  * hidden properties.
  */
 /* istanbul ignore next */
-function copyAugment (target, src, keys) {
+function copyAugment(target, src, keys) {
   for (var i = 0, l = keys.length; i < l; i++) {
     var key = keys[i];
     def(target, key, src[key]);
@@ -1163,13 +1179,17 @@ function copyAugment (target, src, keys) {
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
  */
-function observe (value, asRootData) {
+// 创建观察者实例，如果成功观察到，则返回新的观察者，没有就创建
+function observe(value, asRootData) {
+  // 当前对象不需要进行响应式处理
   if (!isObject(value) || value instanceof VNode) {
     return
   }
   var ob;
+  // 如果存在__ob__对象则直接返回
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
     ob = value.__ob__;
+    // 条件为：需要设置为响应式对象 且 不是ssr环境，且是对象或者数组，而且该对象是可扩展的
   } else if (
     shouldObserve &&
     !isServerRendering() &&
@@ -1179,6 +1199,7 @@ function observe (value, asRootData) {
   ) {
     ob = new Observer(value);
   }
+  // 如果是跟节点数据，则vmCount++
   if (asRootData && ob) {
     ob.vmCount++;
   }
@@ -1187,8 +1208,12 @@ function observe (value, asRootData) {
 
 /**
  * Define a reactive property on an Object.
+ * 给对象定于响应式的函数方法，重写get/set方法
+ * 为一个对象定义一个响应式的属性，
+ * 每一个属性对应一个 dep 对象 如果该属性的值是对象，
+ * 继续调用 observe 如果给属性赋新值，继续调用 observe 如果数据更新发送通知
  */
-function defineReactive$$1 (
+function defineReactive$$1(
   obj,
   key,
   val,
@@ -1213,20 +1238,25 @@ function defineReactive$$1 (
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
-    get: function reactiveGetter () {
+    // 处理依赖搜集和返回本身的值
+    get: function reactiveGetter() {
       var value = getter ? getter.call(obj) : val;
       if (Dep.target) {
+        // 当前属性收集依赖
         dep.depend();
         if (childOb) {
+          // 数组对象的子元素收集依赖。类型可能是对象或者数组
           childOb.dep.depend();
+          // 如果是数组深拷贝一份数据，并且把每个子元素进行依赖搜集
           if (Array.isArray(value)) {
             dependArray(value);
           }
         }
       }
+      // 返回本身属性值
       return value
     },
-    set: function reactiveSetter (newVal) {
+    set: function reactiveSetter(newVal) {
       var value = getter ? getter.call(obj) : val;
       /* eslint-disable no-self-compare */
       if (newVal === value || (newVal !== newVal && value !== value)) {
@@ -1236,6 +1266,7 @@ function defineReactive$$1 (
       if (customSetter) {
         customSetter();
       }
+      // 如果没有 setter 直接返回，有的话就调用。或者设置新增
       // #7981: for accessor properties without setter
       if (getter && !setter) { return }
       if (setter) {
@@ -1243,6 +1274,7 @@ function defineReactive$$1 (
       } else {
         val = newVal;
       }
+      //  如果新值是对象，观察子对象并返回 子的 observer 对象
       childOb = !shallow && observe(newVal);
       dep.notify();
     }
@@ -1254,21 +1286,30 @@ function defineReactive$$1 (
  * triggers change notification if the property doesn't
  * already exist.
  */
-function set (target, key, val) {
+// vm.$set 和 Vue.set的实现基于本方法，作用是响应式修改数组或对象的值
+function set(target, key, val) {
+  // 如果是undefined或者null或者是原始类型的值，触发一个警告
   if (isUndef(target) || isPrimitive(target)
   ) {
     warn(("Cannot set reactive property on undefined, null, or primitive value: " + ((target))));
   }
+  // 处理数组，且是合法的索引（参数大于0且不是浮点数，且是有限数字）
   if (Array.isArray(target) && isValidArrayIndex(key)) {
+    // 如果越界的索引，那么改变数组长度
     target.length = Math.max(target.length, key);
+    // 通过splice来修改数组，splice是改造过的响应式方法
     target.splice(key, 1, val);
     return val
   }
+  // 处理对象,当前key在对象中，且不在对象的原型中
   if (key in target && !(key in Object.prototype)) {
+    // 直接通过交换值的方式触发响应式
     target[key] = val;
     return val
   }
+  // 获取 target 中的 observer 对象
   var ob = (target).__ob__;
+  // 如果已经是vue的实例，直接返回该值
   if (target._isVue || (ob && ob.vmCount)) {
     warn(
       'Avoid adding reactive properties to a Vue instance or its root $data ' +
@@ -1276,11 +1317,14 @@ function set (target, key, val) {
     );
     return val
   }
+  // 如果不存在ob，说明不是响应式对象，直接返回该值
   if (!ob) {
     target[key] = val;
     return val
   }
+  // 把ob的可以设置为响应式对象
   defineReactive$$1(ob.value, key, val);
+  // 发送通知
   ob.dep.notify();
   return val
 }
@@ -1289,10 +1333,12 @@ function set (target, key, val) {
  * Collect dependencies on array elements when the array is touched, since
  * we cannot intercept array element access like property getters.
  */
-function dependArray (value) {
+function dependArray(value) {
   for (var e = (void 0), i = 0, l = value.length; i < l; i++) {
     e = value[i];
+    // 对数组子元素进行依赖搜集
     e && e.__ob__ && e.__ob__.dep.depend();
+    // 处理嵌套数组
     if (Array.isArray(e)) {
       dependArray(e);
     }
@@ -1555,7 +1601,7 @@ function checkComponents (options) {
     validateComponentName(key);
   }
 }
-
+// 验证组件名称是否合法，不能使用h5内置名称，或者重复的名称
 function validateComponentName (name) {
   if (!new RegExp(("^[a-zA-Z][\\-\\.0-9_" + (unicodeRegExp.source) + "]*$")).test(name)) {
     warn(
@@ -1578,6 +1624,7 @@ function validateComponentName (name) {
 function normalizeProps (options, vm) {
   var props = options.props;
   if (!props) { return }
+  // 保存规范化后的结果
   var res = {};
   var i, val, name;
   if (Array.isArray(props)) {
@@ -1586,6 +1633,7 @@ function normalizeProps (options, vm) {
       val = props[i];
       if (typeof val === 'string') {
         name = camelize(val);
+        // 如果是传入数组的props默认类型是null
         res[name] = { type: null };
       } else {
         warn('props must be strings when using array syntax.');
@@ -1665,6 +1713,7 @@ function assertObjectType (name, value, vm) {
  * Merge two option objects into a new one.
  * Core utility used in both instantiation and inheritance.
  */
+// 合并两个选项对象为一个新的对象
 function mergeOptions (
   parent,
   child,
@@ -1677,7 +1726,7 @@ function mergeOptions (
   if (typeof child === 'function') {
     child = child.options;
   }
-
+  // 规范化props，inject，directive 可能通过对象/数组等传入在内部进行统一的规范化处理
   normalizeProps(child, vm);
   normalizeInject(child, vm);
   normalizeDirectives(child);
@@ -1699,6 +1748,8 @@ function mergeOptions (
 
   var options = {};
   var key;
+  // 使用在 parent 或者 child 对象中出现的 key(即选项的名字) 作为参数调用 mergeField 函数，
+  // 真正合并的操作实际在 mergeField 函数中
   for (key in parent) {
     mergeField(key);
   }
@@ -2040,8 +2091,8 @@ function logError (err, vm, info) {
 /*  */
 
 var callbacks = [];
-
-function flushCallbacks () {
+// 依次执行任务队列的回调函数
+function flushCallbacks() {
   var copies = callbacks.slice(0);
   callbacks.length = 0;
   for (var i = 0; i < copies.length; i++) {
@@ -2056,6 +2107,9 @@ function flushCallbacks () {
 // completely stops working after triggering a few times... so, if native
 // Promise is available, we will use it:
 /* istanbul ignore next, $flow-disable-line */
+
+// 如果Promise存在就用Promise实现，不存在就用MutationObserver，排到下一个微任务队列中
+// 默认使用Promise
 if (typeof Promise !== 'undefined' && isNative(Promise)) ; else if (!isIE && typeof MutationObserver !== 'undefined' && (
   isNative(MutationObserver) ||
   // PhantomJS and iOS 7.x
@@ -2070,6 +2124,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) ; else if (!isIE && typ
   observer.observe(textNode, {
     characterData: true
   });
+  // setImmediate用来兼容ie浏览器
 } else if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) ;
 
 /*  */
@@ -3148,12 +3203,12 @@ var encodedAttrWithNewLines = /&(?:lt|gt|quot|amp|#39|#10|#9);/g;
 var isIgnoreNewlineTag = makeMap('pre,textarea', true);
 var shouldIgnoreFirstNewline = function (tag, html) { return tag && isIgnoreNewlineTag(tag) && html[0] === '\n'; };
 
-function decodeAttr (value, shouldDecodeNewlines) {
+function decodeAttr(value, shouldDecodeNewlines) {
   var re = shouldDecodeNewlines ? encodedAttrWithNewLines : encodedAttr;
   return value.replace(re, function (match) { return decodingMap[match]; })
 }
-
-function parseHTML (html, options) {
+// 编译html
+function parseHTML(html, options) {
   var stack = [];
   var expectHTML = options.expectHTML;
   var isUnaryTag$$1 = options.isUnaryTag || no;
@@ -3281,12 +3336,12 @@ function parseHTML (html, options) {
   // Clean up any remaining tags
   parseEndTag();
 
-  function advance (n) {
+  function advance(n) {
     index += n;
     html = html.substring(n);
   }
 
-  function parseStartTag () {
+  function parseStartTag() {
     var start = html.match(startTagOpen);
     if (start) {
       var match = {
@@ -3311,7 +3366,7 @@ function parseHTML (html, options) {
     }
   }
 
-  function handleStartTag (match) {
+  function handleStartTag(match) {
     var tagName = match.tagName;
     var unarySlash = match.unarySlash;
 
@@ -3354,7 +3409,7 @@ function parseHTML (html, options) {
     }
   }
 
-  function parseEndTag (tagName, start, end) {
+  function parseEndTag(tagName, start, end) {
     var pos, lowerCasedTagName;
     if (start == null) { start = index; }
     if (end == null) { end = index; }
@@ -3589,7 +3644,7 @@ var platformMustUseProp;
 var platformGetTagNamespace;
 var maybeComponent;
 
-function createASTElement (
+function createASTElement(
   tag,
   attrs,
   parent
@@ -3606,9 +3661,10 @@ function createASTElement (
 }
 
 /**
+ * // 把html字符串编译成AST语法树
  * Convert HTML string to AST.
  */
-function parse (
+function parse(
   template,
   options
 ) {
@@ -3635,14 +3691,14 @@ function parse (
   var inPre = false;
   var warned = false;
 
-  function warnOnce (msg, range) {
+  function warnOnce(msg, range) {
     if (!warned) {
       warned = true;
       warn$1(msg, range);
     }
   }
 
-  function closeElement (element) {
+  function closeElement(element) {
     trimEndingWhitespace(element);
     if (!inVPre && !element.processed) {
       element = processElement(element, options);
@@ -3676,7 +3732,7 @@ function parse (
           // keep it in the children list so that v-else(-if) conditions can
           // find it as the prev node.
           var name = element.slotTarget || '"default"'
-          ;(currentParent.scopedSlots || (currentParent.scopedSlots = {}))[name] = element;
+            ; (currentParent.scopedSlots || (currentParent.scopedSlots = {}))[name] = element;
         }
         currentParent.children.push(element);
         element.parent = currentParent;
@@ -3702,7 +3758,7 @@ function parse (
     }
   }
 
-  function trimEndingWhitespace (el) {
+  function trimEndingWhitespace(el) {
     // remove trailing whitespace node
     if (!inPre) {
       var lastNode;
@@ -3716,7 +3772,7 @@ function parse (
     }
   }
 
-  function checkRootConstraints (el) {
+  function checkRootConstraints(el) {
     if (el.tag === 'slot' || el.tag === 'template') {
       warnOnce(
         "Cannot use <" + (el.tag) + "> as component root element because it may " +
@@ -3742,7 +3798,7 @@ function parse (
     shouldDecodeNewlinesForHref: options.shouldDecodeNewlinesForHref,
     shouldKeepComment: options.comments,
     outputSourceRange: options.outputSourceRange,
-    start: function start (tag, attrs, unary, start$1, end) {
+    start: function start(tag, attrs, unary, start$1, end) {
       // check namespace.
       // inherit parent ns if there is one
       var ns = (currentParent && currentParent.ns) || platformGetTagNamespace(tag);
@@ -3829,7 +3885,7 @@ function parse (
       }
     },
 
-    end: function end (tag, start, end$1) {
+    end: function end(tag, start, end$1) {
       var element = stack[stack.length - 1];
       // pop stack
       stack.length -= 1;
@@ -3840,7 +3896,7 @@ function parse (
       closeElement(element);
     },
 
-    chars: function chars (text, start, end) {
+    chars: function chars(text, start, end) {
       if (!currentParent) {
         {
           if (text === template) {
@@ -3911,7 +3967,7 @@ function parse (
         }
       }
     },
-    comment: function comment (text, start, end) {
+    comment: function comment(text, start, end) {
       // adding anything as a sibling to the root node is forbidden
       // comments should still be allowed, but ignored
       if (currentParent) {
@@ -3931,13 +3987,13 @@ function parse (
   return root
 }
 
-function processPre (el) {
+function processPre(el) {
   if (getAndRemoveAttr(el, 'v-pre') != null) {
     el.pre = true;
   }
 }
 
-function processRawAttrs (el) {
+function processRawAttrs(el) {
   var list = el.attrsList;
   var len = list.length;
   if (len) {
@@ -3958,7 +4014,7 @@ function processRawAttrs (el) {
   }
 }
 
-function processElement (
+function processElement(
   element,
   options
 ) {
@@ -3983,7 +4039,7 @@ function processElement (
   return element
 }
 
-function processKey (el) {
+function processKey(el) {
   var exp = getBindingAttr(el, 'key');
   if (exp) {
     {
@@ -4010,7 +4066,7 @@ function processKey (el) {
   }
 }
 
-function processRef (el) {
+function processRef(el) {
   var ref = getBindingAttr(el, 'ref');
   if (ref) {
     el.ref = ref;
@@ -4018,7 +4074,7 @@ function processRef (el) {
   }
 }
 
-function processFor (el) {
+function processFor(el) {
   var exp;
   if ((exp = getAndRemoveAttr(el, 'v-for'))) {
     var res = parseFor(exp);
@@ -4035,7 +4091,7 @@ function processFor (el) {
 
 
 
-function parseFor (exp) {
+function parseFor(exp) {
   var inMatch = exp.match(forAliasRE);
   if (!inMatch) { return }
   var res = {};
@@ -4054,7 +4110,7 @@ function parseFor (exp) {
   return res
 }
 
-function processIf (el) {
+function processIf(el) {
   var exp = getAndRemoveAttr(el, 'v-if');
   if (exp) {
     el.if = exp;
@@ -4073,7 +4129,7 @@ function processIf (el) {
   }
 }
 
-function processIfConditions (el, parent) {
+function processIfConditions(el, parent) {
   var prev = findPrevElement(parent.children);
   if (prev && prev.if) {
     addIfCondition(prev, {
@@ -4089,7 +4145,7 @@ function processIfConditions (el, parent) {
   }
 }
 
-function findPrevElement (children) {
+function findPrevElement(children) {
   var i = children.length;
   while (i--) {
     if (children[i].type === 1) {
@@ -4107,14 +4163,14 @@ function findPrevElement (children) {
   }
 }
 
-function addIfCondition (el, condition) {
+function addIfCondition(el, condition) {
   if (!el.ifConditions) {
     el.ifConditions = [];
   }
   el.ifConditions.push(condition);
 }
 
-function processOnce (el) {
+function processOnce(el) {
   var once$$1 = getAndRemoveAttr(el, 'v-once');
   if (once$$1 != null) {
     el.once = true;
@@ -4123,7 +4179,7 @@ function processOnce (el) {
 
 // handle content being passed to a component as slot,
 // e.g. <template slot="xxx">, <div slot-scope="xxx">
-function processSlotContent (el) {
+function processSlotContent(el) {
   var slotScope;
   if (el.tag === 'template') {
     slotScope = getAndRemoveAttr(el, 'scope');
@@ -4242,7 +4298,7 @@ function processSlotContent (el) {
   }
 }
 
-function getSlotName (binding) {
+function getSlotName(binding) {
   var name = binding.name.replace(slotRE, '');
   if (!name) {
     if (binding.name[0] !== '#') {
@@ -4262,7 +4318,7 @@ function getSlotName (binding) {
 }
 
 // handle <slot/> outlets
-function processSlotOutlet (el) {
+function processSlotOutlet(el) {
   if (el.tag === 'slot') {
     el.slotName = getBindingAttr(el, 'name');
     if (el.key) {
@@ -4276,7 +4332,7 @@ function processSlotOutlet (el) {
   }
 }
 
-function processComponent (el) {
+function processComponent(el) {
   var binding;
   if ((binding = getBindingAttr(el, 'is'))) {
     el.component = binding;
@@ -4286,7 +4342,7 @@ function processComponent (el) {
   }
 }
 
-function processAttrs (el) {
+function processAttrs(el) {
   var list = el.attrsList;
   var i, l, name, rawName, value, modifiers, syncGen, isDynamic;
   for (i = 0, l = list.length; i < l; i++) {
@@ -4411,15 +4467,15 @@ function processAttrs (el) {
       // #6887 firefox doesn't update muted state if set via attribute
       // even immediately after element creation
       if (!el.component &&
-          name === 'muted' &&
-          platformMustUseProp(el.tag, el.attrsMap.type, name)) {
+        name === 'muted' &&
+        platformMustUseProp(el.tag, el.attrsMap.type, name)) {
         addProp(el, name, 'true', list[i]);
       }
     }
   }
 }
 
-function checkInFor (el) {
+function checkInFor(el) {
   var parent = el;
   while (parent) {
     if (parent.for !== undefined) {
@@ -4430,7 +4486,7 @@ function checkInFor (el) {
   return false
 }
 
-function parseModifiers (name) {
+function parseModifiers(name) {
   var match = name.match(modifierRE);
   if (match) {
     var ret = {};
@@ -4439,7 +4495,7 @@ function parseModifiers (name) {
   }
 }
 
-function makeAttrsMap (attrs) {
+function makeAttrsMap(attrs) {
   var map = {};
   for (var i = 0, l = attrs.length; i < l; i++) {
     if (
@@ -4453,11 +4509,11 @@ function makeAttrsMap (attrs) {
 }
 
 // for script (e.g. type="x/template") or style, do not decode content
-function isTextTag (el) {
+function isTextTag(el) {
   return el.tag === 'script' || el.tag === 'style'
 }
 
-function isForbiddenTag (el) {
+function isForbiddenTag(el) {
   return (
     el.tag === 'style' ||
     (el.tag === 'script' && (
@@ -4471,7 +4527,7 @@ var ieNSBug = /^xmlns:NS\d+/;
 var ieNSPrefix = /^NS\d+:/;
 
 /* istanbul ignore next */
-function guardIESVGBug (attrs) {
+function guardIESVGBug(attrs) {
   var res = [];
   for (var i = 0; i < attrs.length; i++) {
     var attr = attrs[i];
@@ -4483,7 +4539,7 @@ function guardIESVGBug (attrs) {
   return res
 }
 
-function checkForAliasModel (el, value) {
+function checkForAliasModel(el, value) {
   var _el = el;
   while (_el) {
     if (_el.for && _el.alias === value) {
@@ -4502,7 +4558,7 @@ function checkForAliasModel (el, value) {
 
 /*  */
 
-function preTransformNode (el, options) {
+function preTransformNode(el, options) {
   if (el.tag === 'input') {
     var map = el.attrsMap;
     if (!map['v-model']) {
@@ -4564,7 +4620,7 @@ function preTransformNode (el, options) {
   }
 }
 
-function cloneASTElement (el) {
+function cloneASTElement(el) {
   return createASTElement(el.tag, el.attrsList.slice(), el.parent)
 }
 
@@ -4975,7 +5031,10 @@ var baseDirectives$1 = {
 
 
 
-var CodegenState = function CodegenState (options) {
+/**
+ * 代码生成对象，
+ */
+var CodegenState = function CodegenState(options) {
   this.options = options;
   this.warn = options.warn || baseWarn;
   this.transforms = pluckModuleFunction(options.modules, 'transformCode');
@@ -4990,25 +5049,30 @@ var CodegenState = function CodegenState (options) {
 
 
 
-function generate (
+function generate(
   ast,
   options
 ) {
   var state = new CodegenState(options);
+  // 如果不存在ast，则创建一个空的div标签
   var code = ast ? genElement(ast, state) : '_c("div")';
+  // 最后返回一个render字符串
   return {
     render: ("with(this){return " + code + "}"),
+    // staticRenderFns存储静态跟节点
     staticRenderFns: state.staticRenderFns
   }
 }
 
-function genElement (el, state) {
+function genElement(el, state) {
+  // 如果父节点的pre是true，那么字节点也是true
   if (el.parent) {
     el.pre = el.pre || el.parent.pre;
   }
-
+  // 静态跟节点
   if (el.staticRoot && !el.staticProcessed) {
     return genStatic(el, state)
+    // 处理vue的指令
   } else if (el.once && !el.onceProcessed) {
     return genOnce(el, state)
   } else if (el.for && !el.forProcessed) {
@@ -5042,7 +5106,7 @@ function genElement (el, state) {
 }
 
 // hoist static sub-trees out
-function genStatic (el, state) {
+function genStatic(el, state) {
   el.staticProcessed = true;
   // Some elements (templates) need to behave differently inside of a v-pre
   // node.  All pre nodes are static roots, so we can use this as a location to
@@ -5057,7 +5121,7 @@ function genStatic (el, state) {
 }
 
 // v-once
-function genOnce (el, state) {
+function genOnce(el, state) {
   el.onceProcessed = true;
   if (el.if && !el.ifProcessed) {
     return genIf(el, state)
@@ -5084,7 +5148,7 @@ function genOnce (el, state) {
   }
 }
 
-function genIf (
+function genIf(
   el,
   state,
   altGen,
@@ -5094,7 +5158,7 @@ function genIf (
   return genIfConditions(el.ifConditions.slice(), state, altGen, altEmpty)
 }
 
-function genIfConditions (
+function genIfConditions(
   conditions,
   state,
   altGen,
@@ -5112,7 +5176,7 @@ function genIfConditions (
   }
 
   // v-if with v-once should generate code like (a)?_m(0):_m(1)
-  function genTernaryExp (el) {
+  function genTernaryExp(el) {
     return altGen
       ? altGen(el, state)
       : el.once
@@ -5121,7 +5185,7 @@ function genIfConditions (
   }
 }
 
-function genFor (
+function genFor(
   el,
   state,
   altGen,
@@ -5149,11 +5213,11 @@ function genFor (
   el.forProcessed = true; // avoid recursion
   return (altHelper || '_l') + "((" + exp + ")," +
     "function(" + alias + iterator1 + iterator2 + "){" +
-      "return " + ((altGen || genElement)(el, state)) +
+    "return " + ((altGen || genElement)(el, state)) +
     '})'
 }
 
-function genData$2 (el, state) {
+function genData$2(el, state) {
   var data = '{';
 
   // directives first.
@@ -5237,7 +5301,7 @@ function genData$2 (el, state) {
   return data
 }
 
-function genDirectives (el, state) {
+function genDirectives(el, state) {
   var dirs = el.directives;
   if (!dirs) { return }
   var res = 'directives:[';
@@ -5262,7 +5326,7 @@ function genDirectives (el, state) {
   }
 }
 
-function genInlineTemplate (el, state) {
+function genInlineTemplate(el, state) {
   var ast = el.children[0];
   if (el.children.length !== 1 || ast.type !== 1) {
     state.warn(
@@ -5276,7 +5340,7 @@ function genInlineTemplate (el, state) {
   }
 }
 
-function genScopedSlots (
+function genScopedSlots(
   el,
   slots,
   state
@@ -5333,13 +5397,13 @@ function genScopedSlots (
 function hash(str) {
   var hash = 5381;
   var i = str.length;
-  while(i) {
+  while (i) {
     hash = (hash * 33) ^ str.charCodeAt(--i);
   }
   return hash >>> 0
 }
 
-function containsSlotChild (el) {
+function containsSlotChild(el) {
   if (el.type === 1) {
     if (el.tag === 'slot') {
       return true
@@ -5349,7 +5413,7 @@ function containsSlotChild (el) {
   return false
 }
 
-function genScopedSlot (
+function genScopedSlot(
   el,
   state
 ) {
@@ -5374,7 +5438,7 @@ function genScopedSlot (
   return ("{key:" + (el.slotTarget || "\"default\"") + ",fn:" + fn + reverseProxy + "}")
 }
 
-function genChildren (
+function genChildren(
   el,
   state,
   checkSkip,
@@ -5407,7 +5471,7 @@ function genChildren (
 // 0: no normalization needed
 // 1: simple normalization needed (possible 1-level deep nested array)
 // 2: full normalization needed
-function getNormalizationType (
+function getNormalizationType(
   children,
   maybeComponent
 ) {
@@ -5418,23 +5482,23 @@ function getNormalizationType (
       continue
     }
     if (needsNormalization(el) ||
-        (el.ifConditions && el.ifConditions.some(function (c) { return needsNormalization(c.block); }))) {
+      (el.ifConditions && el.ifConditions.some(function (c) { return needsNormalization(c.block); }))) {
       res = 2;
       break
     }
     if (maybeComponent(el) ||
-        (el.ifConditions && el.ifConditions.some(function (c) { return maybeComponent(c.block); }))) {
+      (el.ifConditions && el.ifConditions.some(function (c) { return maybeComponent(c.block); }))) {
       res = 1;
     }
   }
   return res
 }
 
-function needsNormalization (el) {
+function needsNormalization(el) {
   return el.for !== undefined || el.tag === 'template' || el.tag === 'slot'
 }
 
-function genNode (node, state) {
+function genNode(node, state) {
   if (node.type === 1) {
     return genElement(node, state)
   } else if (node.type === 3 && node.isComment) {
@@ -5444,27 +5508,27 @@ function genNode (node, state) {
   }
 }
 
-function genText (text) {
+function genText(text) {
   return ("_v(" + (text.type === 2
     ? text.expression // no need for () because already wrapped in _s()
     : transformSpecialNewlines(JSON.stringify(text.text))) + ")")
 }
 
-function genComment (comment) {
+function genComment(comment) {
   return ("_e(" + (JSON.stringify(comment.text)) + ")")
 }
 
-function genSlot (el, state) {
+function genSlot(el, state) {
   var slotName = el.slotName || '"default"';
   var children = genChildren(el, state);
   var res = "_t(" + slotName + (children ? ("," + children) : '');
   var attrs = el.attrs || el.dynamicAttrs
     ? genProps((el.attrs || []).concat(el.dynamicAttrs || []).map(function (attr) { return ({
-        // slot props are camelized
-        name: camelize(attr.name),
-        value: attr.value,
-        dynamic: attr.dynamic
-      }); }))
+      // slot props are camelized
+      name: camelize(attr.name),
+      value: attr.value,
+      dynamic: attr.dynamic
+    }); }))
     : null;
   var bind$$1 = el.attrsMap['v-bind'];
   if ((attrs || bind$$1) && !children) {
@@ -5480,7 +5544,7 @@ function genSlot (el, state) {
 }
 
 // componentName is el.component, take it as argument to shun flow's pessimistic refinement
-function genComponent (
+function genComponent(
   componentName,
   el,
   state
@@ -5489,7 +5553,7 @@ function genComponent (
   return ("_c(" + componentName + "," + (genData$2(el, state)) + (children ? ("," + children) : '') + ")")
 }
 
-function genProps (props) {
+function genProps(props) {
   var staticProps = "";
   var dynamicProps = "";
   for (var i = 0; i < props.length; i++) {
@@ -5510,7 +5574,7 @@ function genProps (props) {
 }
 
 // #3895, #4268
-function transformSpecialNewlines (text) {
+function transformSpecialNewlines(text) {
   return text
     .replace(/\u2028/g, '\\u2028')
     .replace(/\u2029/g, '\\u2029')
@@ -6171,8 +6235,8 @@ function repeat$1 (str, n) {
 /*  */
 
 
-
-function createFunction (code, errors) {
+// 把字符串代码，通过new Function转为执行的函数
+function createFunction(code, errors) {
   try {
     return new Function(code)
   } catch (err) {
@@ -6180,11 +6244,12 @@ function createFunction (code, errors) {
     return noop
   }
 }
-
-function createCompileToFunctionFn (compile) {
+// 在进入compileToFunctions以后，会先检查缓存中是否有已经编译好的结果，如果有结果则直接从缓存中读取。
+// 这样做防止每次同样的模板都要进行重复的编译工作。
+function createCompileToFunctionFn(compile) {
   var cache = Object.create(null);
 
-  return function compileToFunctions (
+  return function compileToFunctions(
     template,
     options,
     vm
@@ -6212,6 +6277,7 @@ function createCompileToFunctionFn (compile) {
     }
 
     // check cache
+    // 读取缓存，空间换时间
     var key = options.delimiters
       ? String(options.delimiters) + template
       : template;
@@ -6220,6 +6286,7 @@ function createCompileToFunctionFn (compile) {
     }
 
     // compile
+    // 保存编译结果
     var compiled = compile(template, options);
 
     // check compilation errors/tips
@@ -6283,9 +6350,15 @@ function createCompileToFunctionFn (compile) {
 
 /*  */
 
-function createCompilerCreator (baseCompile) {
-  return function createCompiler (baseOptions) {
-    function compile (
+function createCompilerCreator(baseCompile) {
+  //createCompiler用以创建编译器，返回值是compile以及compileToFunctions。
+  // compile是一个编译器，它会将传入的template转换成对应的AST、render函数以及staticRenderFns函数。
+  // 而compileToFunctions则是带缓存的编译器，同时staticRenderFns以及render函数会被转换成Funtion对象。
+  // 因为不同平台有一些不同的options，所以createCompiler会根据平台区分传入一个baseOptions，
+  //会与compile本身传入的options合并得到最终的finalOptions。
+  return function createCompiler(baseOptions) {
+    // compile函数
+    function compile(
       template,
       options
     ) {
@@ -6296,7 +6369,7 @@ function createCompilerCreator (baseCompile) {
       var warn = function (msg, range, tip) {
         (tip ? tips : errors).push(msg);
       };
-
+      // 合并options
       if (options) {
         if (options.outputSourceRange) {
           // $flow-disable-line
@@ -6348,6 +6421,7 @@ function createCompilerCreator (baseCompile) {
 
     return {
       compile: compile,
+      // compileToFunctions是一个函数
       compileToFunctions: createCompileToFunctionFn(compile)
     }
   }
@@ -6389,7 +6463,13 @@ var compileToFunctions = ref.compileToFunctions;
 // normalization is needed - if any child is an Array, we flatten the whole
 // thing with Array.prototype.concat. It is guaranteed to be only 1-level deep
 // because functional components already normalize their own children.
-function simpleNormalizeChildren (children) {
+// 1.当子元素包含组件时-因为功能组件
+// 可能会传回Array而非单一根。 在这种情况下，
+// 需要规范化-如果任何子级是Array，则将整个平面展平
+// 带有Array.prototype.concat的东西。 保证只有1级深度
+// 因为功能组件已经规范了自己的子代。
+// 拍平二维数组
+function simpleNormalizeChildren(children) {
   for (var i = 0; i < children.length; i++) {
     if (Array.isArray(children[i])) {
       return Array.prototype.concat.apply([], children)
@@ -6402,19 +6482,21 @@ function simpleNormalizeChildren (children) {
 // e.g. <template>, <slot>, v-for, or when the children is provided by user
 // with hand-written render functions / JSX. In such cases a full normalization
 // is needed to cater to all possible types of children values.
-function normalizeChildren (children) {
+// 返回一维数组
+function normalizeChildren(children) {
   return isPrimitive(children)
     ? [createTextVNode(children)]
     : Array.isArray(children)
+      // 可能存在多层情况，处理成一层
       ? normalizeArrayChildren(children)
       : undefined
 }
 
-function isTextNode (node) {
+function isTextNode(node) {
   return isDef(node) && isDef(node.text) && isFalse(node.isComment)
 }
 
-function normalizeArrayChildren (children, nestedIndex) {
+function normalizeArrayChildren(children, nestedIndex) {
   var res = [];
   var i, c, lastIndex, last;
   for (i = 0; i < children.length; i++) {
@@ -6601,7 +6683,7 @@ function renderSSRStyle (
   if (hasProxy) {
     var isBuiltInModifier = makeMap('stop,prevent,self,ctrl,shift,alt,meta,exact');
     config.keyCodes = new Proxy(config.keyCodes, {
-      set: function set (target, key, value) {
+      set: function set(target, key, value) {
         if (isBuiltInModifier(key)) {
           warn(("Avoid overwriting built-in modifier in config.keyCodes: ." + key));
           return false
@@ -6815,7 +6897,8 @@ var ALWAYS_NORMALIZE = 2;
 
 // wrapper function for providing a more flexible interface
 // without getting yelled at by flow
-function createElement (
+// 
+function createElement(
   context,
   tag,
   data,
@@ -6828,19 +6911,21 @@ function createElement (
     children = data;
     data = undefined;
   }
+  // 如果是用户传入的render。normalizationType是2
   if (isTrue(alwaysNormalize)) {
     normalizationType = ALWAYS_NORMALIZE;
   }
   return _createElement(context, tag, data, children, normalizationType)
 }
-
-function _createElement (
+// 真正创建Vnode对象的地方，返回结果是Vnode
+function _createElement(
   context,
   tag,
   data,
   children,
   normalizationType
 ) {
+  // 如果存在data，返回一个空的VNode节点
   if (isDef(data) && isDef((data).__ob__)) {
     warn(
       "Avoid using observed data object as vnode data: " + (JSON.stringify(data)) + "\n" +
@@ -6850,14 +6935,17 @@ function _createElement (
     return createEmptyVNode()
   }
   // object syntax in v-bind
+  // 如果使用内置组件component，需要指定is属性为动态生成组件的名字
   if (isDef(data) && isDef(data.is)) {
     tag = data.is;
   }
+  // 如果传入的是false，则返回一个空节点
   if (!tag) {
     // in case of component :is set to falsy value
     return createEmptyVNode()
   }
   // warn against non-primitive key
+  // key最好设置原始类型的值，添加一个警告
   if (isDef(data) && isDef(data.key) && !isPrimitive(data.key)
   ) {
     {
@@ -6869,6 +6957,7 @@ function _createElement (
     }
   }
   // support single function children as default scoped slot
+  // 处理slot
   if (Array.isArray(children) &&
     typeof children[0] === 'function'
   ) {
@@ -6876,8 +6965,10 @@ function _createElement (
     data.scopedSlots = { default: children[0] };
     children.length = 0;
   }
+  // 用户传入的render，处理一维数组
   if (normalizationType === ALWAYS_NORMALIZE) {
     children = normalizeChildren(children);
+    // 模版编译的render，二维数组转一维（组件有子组件的情况）
   } else if (normalizationType === SIMPLE_NORMALIZE) {
     children = simpleNormalizeChildren(children);
   }
@@ -6885,10 +6976,12 @@ function _createElement (
   if (typeof tag === 'string') {
     var Ctor;
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag);
+    // 判断是否为HTML的保留标签
     if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
       // component
       vnode = createComponent(Ctor, data, context, children, tag);
     } else {
+      // 自定义标签
       // unknown or unlisted namespaced elements
       // check at runtime because it may get assigned a namespace when its
       // parent normalizes children
@@ -6898,12 +6991,14 @@ function _createElement (
       );
     }
   } else {
+    // 不是字符串就是组件
     // direct component options / constructor
     vnode = createComponent(tag, data, context, children);
   }
   if (Array.isArray(vnode)) {
     return vnode
   } else if (isDef(vnode)) {
+    // 创建命名空间
     if (isDef(ns)) { applyNS(vnode, ns); }
     if (isDef(data)) { registerDeepBindings(data); }
     return vnode
@@ -6912,7 +7007,7 @@ function _createElement (
   }
 }
 
-function applyNS (vnode, ns, force) {
+function applyNS(vnode, ns, force) {
   vnode.ns = ns;
   if (vnode.tag === 'foreignObject') {
     // use default namespace inside foreignObject
@@ -6933,7 +7028,7 @@ function applyNS (vnode, ns, force) {
 // ref #5318
 // necessary to ensure parent re-render when deep bindings like :style and
 // :class are used on slot nodes
-function registerDeepBindings (data) {
+function registerDeepBindings(data) {
   if (isObject(data.style)) {
     traverse(data.style);
   }
@@ -7125,8 +7220,10 @@ function bindObjectProps (
 
 /**
  * Runtime helper for rendering static trees.
+ * 对静态内容进行缓存优化函数 
+ * 静态内容：如没有差值表达式的纯html文本标签渲染
  */
-function renderStatic (
+function renderStatic(
   index,
   isInFor
 ) {
@@ -7151,7 +7248,7 @@ function renderStatic (
  * Runtime helper for v-once.
  * Effectively it means marking the node as static with a unique key.
  */
-function markOnce (
+function markOnce(
   tree,
   index,
   key
@@ -7160,7 +7257,7 @@ function markOnce (
   return tree
 }
 
-function markStatic (
+function markStatic(
   tree,
   key,
   isOnce
@@ -7176,7 +7273,7 @@ function markStatic (
   }
 }
 
-function markStaticNode (node, key, isOnce) {
+function markStaticNode(node, key, isOnce) {
   node.isStatic = true;
   node.key = key;
   node.isOnce = isOnce;
@@ -7257,24 +7354,41 @@ function prependModifier (value, symbol) {
 }
 
 /*  */
-
-function installRenderHelpers (target) {
+// render内置函数
+function installRenderHelpers(target) {
+  // 处理v-once的渲染函数
   target._o = markOnce;
+  // 将字符串转化为数字，如果转换失败会返回原字符串
   target._n = toNumber;
+  // _s转为文本
   target._s = toString;
+  // 处理v-for列表渲染
   target._l = renderList;
+  // 处理slot的渲染
   target._t = renderSlot;
+  // 检测两个变量是否相等
   target._q = looseEqual;
+  // 检测arr数组中是否包含与val变量相等的项
   target._i = looseIndexOf;
+  // 处理static树的渲染
   target._m = renderStatic;
+  // 处理filters
   target._f = resolveFilter;
+  // 从config配置中检查eventKeyCode是否存在
   target._k = checkKeyCodes;
+  // 合并v-bind指令到VNode中
   target._b = bindObjectProps;
+  // _v创建空白文本节点/包括换行
   target._v = createTextVNode;
+  // 创建一个空VNode节点
   target._e = createEmptyVNode;
+  // 处理ScopedSlots*
   target._u = resolveScopedSlots;
+  // 处理动态绑定对象的on事件。动态继承添加
   target._g = bindObjectListeners;
+  // _d优化指令的key
   target._d = bindDynamicKeys;
+  // _p 将修饰符运行时标记附加到事件名称
   target._p = prependModifier;
 }
 
@@ -7573,17 +7687,17 @@ function resolveAsyncComponent (
 
 var target;
 
-function add (event, fn) {
+function add(event, fn) {
   target.$on(event, fn);
 }
 
-function remove$1 (event, fn) {
+function remove$1(event, fn) {
   target.$off(event, fn);
 }
 
-function createOnceHandler (event, fn) {
+function createOnceHandler(event, fn) {
   var _target = target;
-  return function onceHandler () {
+  return function onceHandler() {
     var res = fn.apply(null, arguments);
     if (res !== null) {
       _target.$off(event, onceHandler);
@@ -7591,7 +7705,7 @@ function createOnceHandler (event, fn) {
   }
 }
 
-function updateComponentListeners (
+function updateComponentListeners(
   vm,
   listeners,
   oldListeners
@@ -7605,7 +7719,7 @@ function updateComponentListeners (
 
 var activeInstance = null;
 
-function updateChildComponent (
+function updateChildComponent(
   vm,
   propsData,
   listeners,
@@ -7678,14 +7792,14 @@ function updateChildComponent (
   }
 }
 
-function isInInactiveTree (vm) {
+function isInInactiveTree(vm) {
   while (vm && (vm = vm.$parent)) {
     if (vm._inactive) { return true }
   }
   return false
 }
 
-function activateChildComponent (vm, direct) {
+function activateChildComponent(vm, direct) {
   if (direct) {
     vm._directInactive = false;
     if (isInInactiveTree(vm)) {
@@ -7703,7 +7817,7 @@ function activateChildComponent (vm, direct) {
   }
 }
 
-function deactivateChildComponent (vm, direct) {
+function deactivateChildComponent(vm, direct) {
   if (direct) {
     vm._directInactive = true;
     if (isInInactiveTree(vm)) {
@@ -7719,7 +7833,7 @@ function deactivateChildComponent (vm, direct) {
   }
 }
 
-function callHook (vm, hook) {
+function callHook(vm, hook) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget();
   var handlers = vm.$options[hook];
@@ -7774,6 +7888,12 @@ function queueActivatedComponent (vm) {
 /*  */
 
 /*  */
+// 全部watcher的创建顺序
+/**
+ * 1. 计算属性watcher（computer属性）
+ * 2. 用户watcher（watch属性）
+ * 3. 渲染watcher
+ */
 
 /*  */
 
@@ -7814,10 +7934,13 @@ function resolveInject (inject, vm) {
 }
 
 /*  */
-
-function resolveConstructorOptions (Ctor) {
+// 解析构造者的 options
+function resolveConstructorOptions(Ctor) {
+  // Ctor 就是 vm.constructor 可能随着实例创建的对象而修改并非一直是vue可能是vue子类
   var options = Ctor.options;
+  // 如果是子类才会包含super，如通过Vue.extend创建的内容
   if (Ctor.super) {
+    // 递归的处理子类
     var superOptions = resolveConstructorOptions(Ctor.super);
     var cachedSuperOptions = Ctor.superOptions;
     if (superOptions !== cachedSuperOptions) {
@@ -7839,7 +7962,7 @@ function resolveConstructorOptions (Ctor) {
   return options
 }
 
-function resolveModifiedOptions (Ctor) {
+function resolveModifiedOptions(Ctor) {
   var modified;
   var latest = Ctor.options;
   var sealed = Ctor.sealedOptions;
