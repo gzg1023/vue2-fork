@@ -357,6 +357,7 @@ export function callHook(vm: Component, hook: string) {
       invokeWithErrorHandling(handlers[i], vm, null, vm, info)
     }
   }
+  // 触发@hook生命周期钩子（文档没写的功能）
   if (vm._hasHookEvent) {
     vm.$emit('hook:' + hook)
   }

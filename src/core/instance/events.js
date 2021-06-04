@@ -12,6 +12,7 @@ import { updateListeners } from '../vdom/helpers/index'
 export function initEvents(vm: Component) {
   // 存储所有的event，结构是数组
   vm._events = Object.create(null)
+  // 默认不存在生命周期event钩子
   vm._hasHookEvent = false
   // init parent attached events
   const listeners = vm.$options._parentListeners
@@ -63,6 +64,7 @@ export function eventsMixin(Vue: Class<Component>) {
       (vm._events[event] || (vm._events[event] = [])).push(fn)
       // optimize hook:event cost by using a boolean flag marked at registration
       // instead of a hash lookup
+      // 设置了生命周期钩子回调 如 @hook:created="onChildRenCreated"
       if (hookRE.test(event)) {
         vm._hasHookEvent = true
       }
