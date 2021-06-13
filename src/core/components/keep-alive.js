@@ -8,7 +8,13 @@ type VNodeCache = { [key: string]: ?VNode };
 function getComponentName (opts: ?VNodeComponentOptions): ?string {
   return opts && (opts.Ctor.options.name || opts.tag)
 }
-
+/**
+ * 匹配组件名称
+ * @param {*} pattern 
+ * @param {*} name 
+ * @returns 
+ * 类型可能是字符串或者数组或者正则 来制定需要匹配的组件
+ */
 function matches (pattern: string | RegExp | Array<string>, name: string): boolean {
   if (Array.isArray(pattern)) {
     return pattern.indexOf(name) > -1
@@ -49,18 +55,20 @@ function pruneCacheEntry (
 }
 
 const patternTypes: Array<Function> = [String, RegExp, Array]
-
+//  keep-alive组件的option api
 export default {
   name: 'keep-alive',
+  // 取消$child和$parent的裙带关系
   abstract: true,
 
   props: {
     include: patternTypes,
     exclude: patternTypes,
-    max: [String, Number]
+    max: [String, Number] // 最大缓存数量
   },
 
   created () {
+    // 缓存对象 
     this.cache = Object.create(null)
     this.keys = []
   },
@@ -72,6 +80,7 @@ export default {
   },
 
   mounted () {
+    // watch观察 处理包含或者未包含的组件，进行过滤
     this.$watch('include', val => {
       pruneCache(this, name => matches(val, name))
     })
@@ -103,6 +112,7 @@ export default {
         // so cid alone is not enough (#3269)
         ? componentOptions.Ctor.cid + (componentOptions.tag ? `::${componentOptions.tag}` : '')
         : vnode.key
+        // 如果命中缓存，直接返回。重新调整了 key 的顺序放在了最后一个
       if (cache[key]) {
         vnode.componentInstance = cache[key].componentInstance
         // make current key freshest

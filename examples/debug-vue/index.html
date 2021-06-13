@@ -7,14 +7,35 @@
 </head>
 <body>
     <div id="app">
-        {{msg}}
+        {{msg}}- {{num}}
+        <p>{{testObj}}</p>
+        <button @click="numAdd">增加num</button>
+        <button @click="changeObj">修改obj</button>
+
     </div>
     <script src="../../dist/vue.js"></script>
     <script>
         const vm = new Vue({
             el:'#app',
-            data:{
-                msg:'hello vue'
+            data(){
+                return{
+                    msg:'hello vue',
+                    num:0,
+                    testObj:{
+                        a:1,
+                        b:2
+                    },
+                    testList:[1 ,2 ,3 ]
+                }
+            },
+            methods:{
+                changeObj(){
+                    console.log(this.testObj)
+                    this.testObj.a ++
+                },
+                numAdd(){
+                    this._data.num ++
+                }
             },
             created(){
                 console.log(this)

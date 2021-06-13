@@ -25,6 +25,7 @@ export const onRE = /^@|^v-on:/
 export const dirRE = process.env.VBIND_PROP_SHORTHAND
   ? /^v-|^@|^:|^\.|^#/
   : /^v-|^@|^:|^#/
+// 匹配v-for的正则
 export const forAliasRE = /([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/
 export const forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/
 const stripParensRE = /^\(|\)$/g
@@ -442,6 +443,7 @@ export function processElement(
   )
 
   processRef(element)
+  // 处理slot的模版编译
   processSlotContent(element)
   processSlotOutlet(element)
   processComponent(element)
@@ -508,7 +510,7 @@ type ForParseResult = {
   iterator1?: string;
   iterator2?: string;
 };
-
+// 编译v-for
 export function parseFor(exp: string): ?ForParseResult {
   const inMatch = exp.match(forAliasRE)
   if (!inMatch) return
@@ -527,7 +529,7 @@ export function parseFor(exp: string): ?ForParseResult {
   }
   return res
 }
-
+// 编译v-if
 function processIf(el) {
   const exp = getAndRemoveAttr(el, 'v-if')
   if (exp) {
@@ -562,7 +564,7 @@ function processIfConditions(el, parent) {
     )
   }
 }
-
+// 查找v-if和v-else-if的链接性，必须是相邻的标签
 function findPrevElement(children: Array<any>): ASTElement | void {
   let i = children.length
   while (i--) {

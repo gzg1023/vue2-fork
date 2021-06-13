@@ -118,10 +118,13 @@ function copyAugment(target: Object, src: Object, keys: Array<string>) {
  */
 // 创建观察者实例，如果成功观察到，则返回新的观察者，没有就创建
 export function observe(value: any, asRootData: ?boolean): Observer | void {
+  console.log('observe -start',value)
   // 当前对象不需要进行响应式处理
   if (!isObject(value) || value instanceof VNode) {
+    console.log('observe -center',value)
     return
   }
+  console.log('observe -end',value)
   let ob: Observer | void
   // 如果存在__ob__对象则直接返回
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
@@ -163,6 +166,8 @@ export function defineReactive(
   if (property && property.configurable === false) {
     return
   }
+
+  console.log(`defineReactive--[[[[[${key}]]]]]=>${obj}`)
 
   // cater for pre-defined getter/setters
   const getter = property && property.get

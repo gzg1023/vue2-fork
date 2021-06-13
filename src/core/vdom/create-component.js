@@ -35,6 +35,7 @@ import {
 // inline hooks to be invoked on component VNodes during patch
 const componentVNodeHooks = {
   init (vnode: VNodeWithData, hydrating: boolean): ?boolean {
+    // 处理keep-alive的缓存渲染
     if (
       vnode.componentInstance &&
       !vnode.componentInstance._isDestroyed &&

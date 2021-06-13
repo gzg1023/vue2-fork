@@ -64,7 +64,9 @@ export function initState(vm: Component) {
     initWatch(vm, opts.watch)
   }
 }
-
+// 流程： 初始化保存key，同样转换结构，验证key有效性，转为响应式结构
+// 基本类型是，子组件内部 props 通知 子组件更新的。
+// 引用类型是，父组件的数据 data 通知 子组件更新的。
 function initProps(vm: Component, propsOptions: Object) {
   const propsData = vm.$options.propsData || {}
   const props = vm._props = {}
@@ -91,6 +93,7 @@ function initProps(vm: Component, propsOptions: Object) {
           vm
         )
       }
+      // 处理每个props对象
       defineReactive(props, key, value, () => {
         if (!isRoot && !isUpdatingChildComponent) {
           warn(
@@ -108,7 +111,7 @@ function initProps(vm: Component, propsOptions: Object) {
     // static props are already proxied on the component's prototype
     // during Vue.extend(). We only need to proxy props defined at
     // instantiation here.
-    // 如果当前prop不在vue实例上面，则注入到vue实例中
+    // 如果当前prop不在vue实例上面，则注入到vue实例中，对_props进行代理，可以通过this直接获取
     if (!(key in vm)) {
       proxy(vm, `_props`, key)
     }
@@ -361,7 +364,7 @@ export function stateMixin(Vue: Class<Component>) {
   // 添加到vue构造函数中
   Object.defineProperty(Vue.prototype, '$data', dataDef)
   Object.defineProperty(Vue.prototype, '$props', propsDef)
-
+  console.log("Object.defineProperty(Vue.prototype, '$data', dataDef)")
   Vue.prototype.$set = set
   Vue.prototype.$delete = del
   //  观察 Vue 实例变化的一个表达式或计算属性函数。回调函数得到的参数为新值和旧值。

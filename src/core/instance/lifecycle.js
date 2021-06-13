@@ -35,6 +35,7 @@ export function initLifecycle(vm: Component) {
   // locate first non-abstract parent
   let parent = options.parent
   // 找到当前组件的父组件，添加实例到父组件的children中
+  // 忽略abstract为false的组件
   if (parent && !options.abstract) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent

@@ -35,6 +35,7 @@ export default class Dep {
   }
   // 通知依赖的方法
   notify() {
+    console.log('notify',this)
     // stabilize the subscriber list first
     // 克隆一个新数组
     const subs = this.subs.slice()
