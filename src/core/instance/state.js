@@ -256,6 +256,7 @@ function createComputedGetter(key) {
   return function computedGetter() {
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
+      // 修改dirty为false 并进行数据的更新
       if (watcher.dirty) {
         watcher.evaluate()
       }
